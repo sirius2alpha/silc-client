@@ -1,0 +1,52 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card" bindtap="goToUserInfo">
+    <view class="user-card-bg"></view>
+    <view class="user-info">
+      <image class="avatar" src="{{avatarUrl || '/assets/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="user-detail">
+        <text class="nickname">{{nickname || username || '默认用户'}}</text>
+        <text class="user-id">ID: {{username || 'N/A'}}</text>
+      </view>
+      <view class="points-info">
+        <text class="points-value">{{points || 0}}</text>
+        <text class="points-label">积分</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="function-list">
+    <view class="function-item" bindtap="readAllNotifications">
+      <view class="item-left">
+        <image class="item-icon" src="/assets/icons/notification.png" mode="aspectFit"></image>
+        <text class="item-name">消息通知</text>
+      </view>
+      <view class="item-right">
+        <view class="notification-badge" wx:if="{{showNotificationBadge}}"></view>
+        <text class="arrow">></text>
+      </view>
+    </view>
+
+    <view class="function-item" bindtap="goToFeedback">
+      <view class="item-left">
+        <image class="item-icon" src="/assets/icons/feedback.png" mode="aspectFit"></image>
+        <text class="item-name">意见反馈</text>
+      </view>
+      <view class="item-right">
+        <text class="arrow">></text>
+      </view>
+    </view>
+
+    <view class="function-item" bindtap="goToAbout">
+      <view class="item-left">
+        <image class="item-icon" src="/assets/icons/about.png" mode="aspectFit"></image>
+        <text class="item-name">关于我们</text>
+      </view>
+      <view class="item-right">
+        <text class="arrow">></text>
+      </view>
+    </view>
+  </view>
+</view>

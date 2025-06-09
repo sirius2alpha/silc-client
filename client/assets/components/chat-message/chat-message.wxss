@@ -1,0 +1,93 @@
+.message {
+  display: flex;
+  margin-bottom: 30rpx;
+  padding: 0 30rpx;
+}
+
+.message.self {
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  margin: 0 20rpx;
+}
+
+.content {
+  max-width: 70%;
+}
+
+.nickname {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.bubble {
+  padding: 20rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.other .bubble {
+  background: #fff;
+  color: #333;
+}
+
+.self .bubble {
+  background: #1890ff;
+  color: #fff;
+}
+
+.time {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+.actions {
+  margin-top: 10rpx;
+  text-align: right;
+}
+
+.action-btn {
+  font-size: 24rpx;
+  color: #1890ff;
+  padding: 10rpx;
+}
+
+.evaluation-panel {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
+  padding: 20rpx;
+}
+
+.evaluation-title {
+  font-size: 28rpx;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.score-list {
+  display: flex;
+  justify-content: center;
+}
+
+.score-item {
+  padding: 10rpx;
+}
+
+.score-item image {
+  width: 40rpx;
+  height: 40rpx;
+} 

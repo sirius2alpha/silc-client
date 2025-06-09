@@ -1,0 +1,80 @@
+/* pages/about/about.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 40rpx 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: #7f8c8d;
+  margin-bottom: 50rpx;
+}
+
+.info-section {
+  width: 100%;
+  margin-bottom: 50rpx;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #7f8c8d;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.copyright {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30rpx;
+}
+
+.copyright text {
+  font-size: 24rpx;
+  color: #bdc3c7;
+  line-height: 1.6;
+}

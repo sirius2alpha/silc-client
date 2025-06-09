@@ -1,0 +1,106 @@
+<view class="container">
+  <!-- 头部积分信息 -->
+  <view class="header">
+    <view class="balance-box">
+      <text class="label">我的积分</text>
+      <text class="value">{{balance}}</text>
+    </view>
+    
+    <!-- 横幅 -->
+    <view class="banner">
+      <view class="banner-text">
+        <text class="banner-title">积分兑好礼</text>
+        <text class="banner-desc">海量精品等你来兑换</text>
+      </view>
+      <image class="banner-image" src="/assets/icons/gift.png" mode="aspectFit"></image>
+    </view>
+  </view>
+  
+  <!-- 商品列表 -->
+  <view class="items-list">
+    <block wx:if="{{exchangeItems.length > 0}}">
+      <view class="item" wx:for="{{exchangeItems}}" wx:key="id" bindtap="handleItemTap" data-item="{{item}}">
+        <image class="item-image" src="{{item.image || '/assets/images/items/item' + ((index % 6) + 1) + '.png'}}" mode="aspectFill" binderror="handleImageError" data-index="{{index}}"></image>
+        <view class="item-info">
+          <view class="info-row">
+            <text class="name">{{item.name}}</text>
+            <text class="description">{{item.description}}</text>
+          </view>
+          <view class="action-row">
+            <view class="points">
+              <text class="points-value">{{item.points}}</text>
+              <text class="points-label">积分</text>
+            </view>
+            <text class="stock">库存: {{item.stock}}</text>
+            <view class="exchange-btn {{balance < item.points ? 'disabled' : ''}}" 
+                  catchtap="handleExchange" 
+                  data-id="{{item.id}}"
+                  data-name="{{item.name}}"
+                  data-points="{{item.points}}">
+              {{balance < item.points ? '积分不足' : '立即兑换'}}
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:elif="{{loading}}">
+      <text>加载中...</text>
+    </view>
+    <!-- 空状态 -->
+    <view class="empty" wx:else>
+      <text>暂无可兑换商品</text>
+    </view>
+  </view>
+  
+  <!-- 确认兑换弹窗 -->
+  <view class="confirm-modal" wx:if="{{showConfirmModal}}">
+    <view class="modal-mask" bindtap="hideConfirmModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text>确认兑换</text>
+      </view>
+      <view class="modal-body">
+        <view class="item-preview">
+          <image class="preview-image" src="{{currentItem.image || '/assets/images/items/item' + ((currentItemIndex % 6) + 1) + '.png'}}" mode="aspectFill" binderror="handleImageError" data-index="{{currentItemIndex}}"></image>
+          <view class="preview-info">
+            <text class="preview-name">{{currentItem.name}}</text>
+            <text class="preview-points">{{currentItem.points}} 积分</text>
+          </view>
+        </view>
+        <view class="confirm-tip">
+          确认使用 <text class="highlight">{{currentItem.points}}</text> 积分兑换此商品吗？
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="cancel-btn" bindtap="hideConfirmModal">取消</view>
+        <view class="confirm-btn" bindtap="confirmExchange">确认兑换</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 兑换码弹窗 -->
+  <view class="redeem-modal" wx:if="{{showRedeemModal}}">
+    <view class="modal-mask" bindtap="hideRedeemModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text>兑换成功</text>
+      </view>
+      <view class="modal-body">
+        <view class="success-icon">
+          <icon type="success" size="100" color="#1890ff"></icon>
+        </view>
+        <view class="redeem-code">
+          <text class="label">兑换码：</text>
+          <text class="code">{{redeemCode}}</text>
+        </view>
+        <view class="redeem-tip">
+          <text>请前往综合楼找老师进行核销</text>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="confirm-btn" bindtap="hideRedeemModal">确定</view>
+      </view>
+    </view>
+  </view>
+</view>

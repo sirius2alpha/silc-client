@@ -1,0 +1,30 @@
+<!--pages/feedback/feedback.wxml-->
+<view class="container">
+  <view class="feedback-form">
+    <view class="form-title">意见反馈</view>
+    <view class="form-subtitle">您的建议是我们进步的动力</view>
+    
+    <view class="form-group">
+      <view class="input-group">
+        <textarea class="feedback-input" placeholder="请输入您的反馈内容（200字以内）" maxlength="200" bindinput="onInput" value="{{feedbackContent}}"></textarea>
+        <view class="word-count">{{wordCount}}/200</view>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <view class="type-title">反馈类型</view>
+      <picker bindchange="onTypeChange" value="{{typeIndex}}" range="{{typeArray}}">
+        <view class="picker">
+          {{typeArray[typeIndex]}}
+        </view>
+      </picker>
+    </view>
+    
+    <view class="form-group">
+      <view class="contact-title">联系方式（选填）</view>
+      <input class="contact-input" placeholder="请输入您的联系方式" bindinput="onContactInput" value="{{contactInfo}}"/>
+    </view>
+    
+    <button class="submit-btn" bindtap="submitFeedback">提交反馈</button>
+  </view>
+</view>

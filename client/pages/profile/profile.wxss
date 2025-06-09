@@ -1,0 +1,134 @@
+/* pages/profile/profile.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 30rpx;
+}
+
+/* 用户信息卡片 */
+.user-card {
+  position: relative;
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 30rpx;
+}
+
+.user-card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200rpx;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  z-index: 1;
+}
+
+.user-info {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 40rpx 30rpx;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+  margin-right: 30rpx;
+  border: 4rpx solid #fff;
+  box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.1);
+}
+
+.user-detail {
+  flex: 1;
+}
+
+.nickname {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.user-id {
+  font-size: 26rpx;
+  color: #7f8c8d;
+}
+
+.points-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-left: 1rpx solid rgba(0, 0, 0, 0.05);
+  padding-left: 30rpx;
+}
+
+.points-value {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #4a90e2;
+}
+
+.points-label {
+  font-size: 26rpx;
+  color: #7f8c8d;
+}
+
+/* 功能列表 */
+.function-list {
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.function-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 35rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.function-item:last-child {
+  border-bottom: none;
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+}
+
+.item-icon {
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: 24rpx;
+}
+
+.item-name {
+  font-size: 30rpx;
+  color: #2c3e50;
+}
+
+.item-right {
+  display: flex;
+  align-items: center;
+}
+
+.arrow {
+  font-size: 26rpx;
+  color: #bdc3c7;
+}
+
+.notification-badge {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  background: #e74c3c;
+  margin-right: 10rpx;
+}

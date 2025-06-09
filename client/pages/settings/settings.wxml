@@ -1,0 +1,91 @@
+<view class="container">
+  <view class="settings-card" wx:if="{{settings}}">
+    <view class="settings-group">
+      <view class="group-title">通知设置</view>
+      <view class="settings-item">
+        <view class="item-label">
+          <text class="label-text">新消息提醒</text>
+          <text class="label-desc">收到新消息时显示通知</text>
+        </view>
+        <switch 
+          checked="{{settings.enableNotification}}"
+          data-field="enableNotification"
+          bindchange="handleSwitchChange"
+        />
+      </view>
+      <view class="settings-item">
+        <view class="item-label">
+          <text class="label-text">声音提醒</text>
+          <text class="label-desc">收到新消息时播放提示音</text>
+        </view>
+        <switch 
+          checked="{{settings.enableSound}}"
+          data-field="enableSound"
+          bindchange="handleSwitchChange"
+        />
+      </view>
+    </view>
+
+    <view class="settings-group">
+      <view class="group-title">隐私设置</view>
+      <view class="settings-item">
+        <view class="item-label">
+          <text class="label-text">对话记录</text>
+          <text class="label-desc">保存对话记录用于改进服务</text>
+        </view>
+        <switch 
+          checked="{{settings.saveHistory}}"
+          data-field="saveHistory"
+          bindchange="handleSwitchChange"
+        />
+      </view>
+      <view class="settings-item">
+        <view class="item-label">
+          <text class="label-text">用户行为分析</text>
+          <text class="label-desc">收集使用数据用于改进体验</text>
+        </view>
+        <switch 
+          checked="{{settings.enableAnalytics}}"
+          data-field="enableAnalytics"
+          bindchange="handleSwitchChange"
+        />
+      </view>
+    </view>
+
+    <view class="settings-group">
+      <view class="group-title">其他设置</view>
+      <view class="settings-item">
+        <view class="item-label">
+          <text class="label-text">深色模式</text>
+          <text class="label-desc">切换深色/浅色主题</text>
+        </view>
+        <switch 
+          checked="{{settings.darkMode}}"
+          data-field="darkMode"
+          bindchange="handleSwitchChange"
+        />
+      </view>
+      <view class="settings-item">
+        <button class="clear-btn" bindtap="handleClearCache">
+          清除缓存
+        </button>
+      </view>
+    </view>
+
+    <button 
+      class="save-btn"
+      loading="{{saving}}"
+      bindtap="handleSave"
+    >
+      保存设置
+    </button>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="version-info">
+    <text>当前版本：1.0.0</text>
+  </view>
+</view> 

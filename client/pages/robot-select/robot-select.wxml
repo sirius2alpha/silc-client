@@ -1,0 +1,73 @@
+<view class="container">
+  <view class="background-layer"></view>
+  <view class="header">
+    <text class="title">请选择你的专属悉商AI伙伴</text>
+    <text class="subtitle">请选择一位智能伙伴，共同开启悉商成长之旅</text>
+  </view>
+
+  <view class="robot-swiper-container">
+    <swiper 
+      class="robot-swiper" 
+      previous-margin="50rpx" 
+      next-margin="50rpx" 
+      bindchange="onSwiperChange"
+      circular="true"
+      current="{{currentRobotIndex}}"
+    >
+      <swiper-item wx:for="{{robots}}" wx:key="id" wx:for-item="robot" class="swiper-item">
+        <view class="robot-card {{currentRobotId === robot.id ? 'selected' : ''}}" style="position: relative; left: 2rpx; top: 14rpx; height: 660rpx; display: flex; box-sizing: border-box">
+          <view class="robot-bubble" style="position: relative; left: 1rpx; top: -13rpx">
+            <text class="robot-greeting">{{robot.personality === 'male' ? '你好，我是悉文，很高兴认识你！我可以为你解答专业问题。' : '嗨，我是悉荟，很开心能帮到你！有任何问题都可以问我哦~'}}</text>
+          </view>
+          <view class="avatar-container {{currentRobotId === robot.id ? 'pulse-animation' : ''}}">
+            <image class="robot-avatar" src="{{robot.avatar}}" mode="aspectFill" style="position: relative; left: 0rpx; top: 0rpx"></image>
+          </view>
+          <view class="robot-info" style="position: relative; left: 2rpx; top: 23rpx">
+            <text class="robot-name" style="position: relative; left: 0rpx; top: -18rpx; width: 79rpx; height: 44rpx; display: block; box-sizing: border-box">{{robot.name}}</text>
+            <view class="robot-tags">
+              <text class="robot-tag">{{robot.personality === 'male' ? '专业' : '温柔'}}</text>
+              <text class="robot-tag">{{robot.personality === 'male' ? '稳重' : '贴心'}}</text>
+              <text class="robot-tag">{{robot.personality === 'male' ? '理性' : '感性'}}</text>
+            </view>
+            <text class="robot-desc" style="position: relative; left: 0rpx; top: -16rpx">{{robot.description}}</text>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+    
+    <view class="swiper-dots">
+      <view 
+        wx:for="{{robots}}" 
+        wx:key="id" 
+        class="dot {{currentRobotIndex === index ? 'active' : ''}}"
+        bindtap="switchRobot"
+        data-index="{{index}}"
+      ></view>
+    </view>
+  </view>
+
+  <view class="robot-features" style="position: relative; left: 0rpx; top: 21rpx">
+    <view class="feature-item">
+      <image class="feature-icon" src="/assets/icons/chat.png" mode="aspectFit"></image>
+      <text class="feature-text">悉问·千问千答</text>
+    </view>
+    <view class="feature-item">
+      <image class="feature-icon" src="/assets/icons/knowledge.png" mode="aspectFit"></image>
+      <text class="feature-text">悉知·专业通关</text>
+    </view>
+    <view class="feature-item">
+      <image class="feature-icon" src="/assets/icons/personal.png" mode="aspectFit"></image>
+      <text class="feature-text">悉守·相伴成长</text>
+    </view>
+  </view>
+
+  <button 
+    class="bind-btn {{selectedRobot ? 'active' : ''}}" 
+    loading="{{loading}}"
+    disabled="{{!selectedRobot}}"
+    bindtap="handleBind"
+   style="position: relative; left: -1rpx; top: -74rpx">
+    <text wx:if="{{selectedRobot}}">选择{{selectedRobot.name}}</text>
+    <text wx:else>请选择你的专属悉商AI伙伴</text>
+  </button>
+</view> 

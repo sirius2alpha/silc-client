@@ -1,0 +1,70 @@
+.container {
+  padding: 40rpx;
+  min-height: 100vh;
+  background: #f8f8f8;
+}
+
+.header {
+  margin-bottom: 60rpx;
+}
+
+.title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.robot-list {
+  display: flex;
+  justify-content: space-between;
+}
+
+.robot-item {
+  flex: 1;
+  margin: 0 20rpx;
+  padding: 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.robot-item.selected {
+  background: #e6f3fa;
+  border: 2rpx solid #1296db;
+}
+
+.robot-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  margin-bottom: 20rpx;
+}
+
+.robot-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.robot-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
+.tips {
+  margin-top: 60rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+} 

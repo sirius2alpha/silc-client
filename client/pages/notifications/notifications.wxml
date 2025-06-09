@@ -1,0 +1,37 @@
+<!--pages/notifications/notifications.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">消息通知</text>
+    <view class="actions">
+      <text class="action-btn" bindtap="markAllAsRead">全部已读</text>
+    </view>
+  </view>
+  
+  <view class="notification-list">
+    <block wx:if="{{notifications.length > 0}}">
+      <view class="notification-item {{!item.read ? 'unread' : ''}}" 
+            wx:for="{{notifications}}" 
+            wx:key="id">
+        <view class="notification-content" bindtap="markAsRead" data-id="{{item.id}}">
+          <view class="notification-title">{{item.title}}</view>
+          <view class="notification-text">{{item.content}}</view>
+          <view class="notification-time">{{item.time}}</view>
+        </view>
+        <view class="notification-actions">
+          <view class="delete-btn" catchtap="deleteNotification" data-id="{{item.id}}">
+            <text>删除</text>
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <view class="empty-list" wx:if="{{notifications.length === 0 && !loading}}">
+      <text class="empty-text">暂无通知消息</text>
+    </view>
+  </view>
+  
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view> 

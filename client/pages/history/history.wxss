@@ -1,0 +1,256 @@
+.container {
+  min-height: 100vh;
+  background: #f8f8f8;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 通用样式 */
+.section-header {
+  padding: 30rpx 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.section-title .icon {
+  margin-right: 12rpx;
+  font-size: 36rpx;
+}
+
+.section-subtitle {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 热门问题区域样式 */
+.hot-questions-section {
+  background: #fff;
+  margin-bottom: 20rpx;
+  border-radius: 0 0 24rpx 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.hot-questions-list {
+  padding: 0 20rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.hot-question-item {
+  padding: 24rpx;
+  background: #f8f8f8;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+}
+
+.hot-question-item:active {
+  transform: scale(0.98);
+  background: #f0f0f0;
+}
+
+.rank-badge {
+  width: 40rpx;
+  height: 40rpx;
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: bold;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.question-content {
+  flex: 1;
+}
+
+.question-text {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 12rpx;
+  line-height: 1.5;
+}
+
+.question-count {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.question-count .icon {
+  margin-right: 8rpx;
+}
+
+/* 历史记录区域样式 */
+.history-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.history-scroll {
+  flex: 1;
+  height: 0;
+}
+
+.history-list {
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.history-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.history-item:active {
+  transform: scale(0.98);
+  background: #fafafa;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.robot-info {
+  display: flex;
+  align-items: center;
+}
+
+.robot-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+  border: 2rpx solid #fff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.robot-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.history-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.history-content {
+  background: #f8f8f8;
+  padding: 20rpx;
+  border-radius: 12rpx;
+}
+
+.question,
+.answer {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.question .label,
+.answer .label {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: bold;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.question .label {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.answer .label {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.question .text,
+.answer .text {
+  flex: 1;
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.loading-icon {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #1890ff;
+  border-radius: 50%;
+  margin-bottom: 16rpx;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.no-more {
+  text-align: center;
+  padding: 30rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 30rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.empty-icon {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+} 

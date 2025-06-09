@@ -1,0 +1,77 @@
+<view class="chat-container">
+  <!-- 聊天记录区域 -->
+  <scroll-view class="chat-list" scroll-y scroll-top="{{scrollTop}}" scroll-into-view="{{scrollToMessage}}" bindscroll="onScroll" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd" enhanced="true" show-scrollbar="false">
+    <view class="chat-list-content">
+      <!-- 机器人信息 -->
+      <view class="robot-info" wx:if="{{robotInfo}}">
+        <image class="robot-avatar" src="{{robotInfo.avatar || robot.avatar}}" mode="aspectFill"></image>
+        <view class="robot-name">{{robotInfo.name || robot.name}}</view>
+        <view class="robot-desc">{{robotInfo.description}}</view>
+      </view>
+      <!-- 消息列表 -->
+      <block wx:for="{{messages}}" wx:key="id">
+        <view id="msg-{{item.id}}">
+          <!-- 用户消息 -->
+          <view class="message-item user-message" wx:if="{{item.type==='user'}}">
+            <!-- 消息内容 -->
+            <view class="message-wrapper">
+              <view class="message-content">
+                <text>{{item.content}}</text>
+              </view>
+              <view class="message-time">{{item.formattedTime}}</view>
+            </view>
+            <!-- 用户头像放在最右侧 -->
+            <view class="avatar user-avatar" wx:if="{{userInfo.avatar}}">
+              <image src="{{userInfo.avatar}}" mode="aspectFill"></image>
+            </view>
+            <view class="avatar user-avatar text-avatar" wx:else>
+              <text>我</text>
+            </view>
+          </view>
+          <!-- 机器人消息 -->
+          <view class="message-item robot-message" wx:else>
+            <!-- 机器人头像 - 使用当前绑定的机器人头像 -->
+            <view class="avatar robot-avatar" wx:if="{{robot.avatar || robotInfo.avatar}}">
+              <image src="{{robot.avatar || robotInfo.avatar}}" mode="aspectFill"></image>
+            </view>
+            <view class="avatar robot-avatar text-avatar" wx:else>
+              <text>机</text>
+            </view>
+            <!-- 消息内容 -->
+            <view class="message-wrapper">
+              <view class="message-content">
+                <text>{{item.content}}</text>
+              </view>
+              <view class="message-time">{{item.formattedTime}}</view>
+            </view>
+          </view>
+        </view>
+      </block>
+      <!-- 加载中 -->
+      <view class="loading" wx:if="{{loading}}">
+        <view class="loading-dots">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+  <!-- 输入区域 -->
+  <view class="input-area" style="transform: translateY(-{{keyboardHeight}}px)">
+    <input class="message-input" 
+           value="{{inputValue}}" 
+           placeholder="输入消息..." 
+           bindinput="onInput" 
+           bindconfirm="onConfirm" 
+           confirm-type="send" 
+           adjust-position="{{false}}"
+           cursor-spacing="20"
+           hold-keyboard="{{true}}"
+           focus="{{inputFocus}}"
+           bindfocus="onInputFocus"
+           bindblur="onInputBlur"
+           bindkeyboardheightchange="onKeyboardHeightChange" />
+    <view class="send-btn {{inputValue ? 'active' : ''}}" bindtap="onSend">发送</view>
+  </view>
+</view>

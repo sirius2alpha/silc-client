@@ -1,0 +1,45 @@
+<view class="container">
+  <view class="header">
+    <view class="title-wrapper">
+      <text class="title">积分规则说明</text>
+      <text class="subtitle">了解如何获取和使用积分</text>
+    </view>
+  </view>
+  
+  <view class="rules-list">
+    <view class="rules-item" wx:for="{{rules}}" wx:key="id">
+      <view class="rule-header">
+        <view class="rule-tag">+{{item.points}}</view>
+        <text class="rule-title">{{item.title}}</text>
+      </view>
+      <text class="rule-desc">{{item.description}}</text>
+    </view>
+    
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!rules || rules.length === 0 && !loading}}">
+      <text>暂无积分规则</text>
+    </view>
+  </view>
+  
+  <view class="note-section">
+    <view class="note-title">积分使用须知</view>
+    <view class="note-list">
+      <view class="note-item">
+        <text class="dot">•</text>
+        <text class="text">积分不可提现，仅可在平台内使用。</text>
+      </view>
+      <view class="note-item">
+        <text class="dot">•</text>
+        <text class="text">积分有效期为获得之日起12个月，请注意及时使用。</text>
+      </view>
+      <view class="note-item">
+        <text class="dot">•</text>
+        <text class="text">平台有权对积分规则进行调整，调整前将提前公告。</text>
+      </view>
+      <view class="note-item">
+        <text class="dot">•</text>
+        <text class="text">如有积分相关疑问，请联系客服。</text>
+      </view>
+    </view>
+  </view>
+</view> 

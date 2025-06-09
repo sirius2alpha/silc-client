@@ -1,0 +1,269 @@
+.container {
+  min-height: 100vh;
+  width: 100%;
+  padding: 30rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: linear-gradient(160deg, #f0f8ff 0%, #e1f0ff 50%, #d4e7ff 100%);
+  overflow: hidden;
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0.12;
+  filter: blur(1px);
+}
+
+.background-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.75);
+  z-index: 0;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 35rpx;
+  z-index: 1;
+  padding: 0 20rpx;
+}
+
+.title {
+  font-size: 46rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 15rpx;
+  display: block;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: #5d6d7e;
+  display: block;
+  padding: 0 40rpx;
+  line-height: 1.5;
+}
+
+.robot-swiper-container {
+  width: 100%;
+  height: 780rpx;
+  margin-bottom: 25rpx;
+  z-index: 1;
+}
+
+.robot-swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10rpx;
+}
+
+.robot-card {
+  width: 540rpx;
+  height: 640rpx;
+  padding: 35rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 25rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.robot-card.selected {
+  transform: scale(1.02);
+  box-shadow: 0 12rpx 35rpx rgba(52, 152, 219, 0.25);
+  border: 2px solid #3498db;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.robot-bubble {
+  background: #f5faff;
+  border-radius: 18rpx;
+  padding: 20rpx 25rpx;
+  margin-bottom: 25rpx;
+  position: relative;
+  max-width: 90%;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+}
+
+.robot-bubble:after {
+  content: '';
+  position: absolute;
+  bottom: -15rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 15rpx 15rpx 0;
+  border-style: solid;
+  border-color: #f5faff transparent transparent;
+}
+
+.robot-greeting {
+  font-size: 28rpx;
+  color: #34495e;
+  line-height: 1.4;
+}
+
+.avatar-container {
+  width: 190rpx;
+  height: 190rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 30rpx;
+  border: 6rpx solid white;
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.12);
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 20rpx rgba(52, 152, 219, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+  }
+}
+
+.robot-avatar {
+  width: 100%;
+  height: 100%;
+}
+
+.robot-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.robot-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 18rpx;
+}
+
+.robot-tags {
+  display: flex;
+  margin-bottom: 30rpx;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.robot-tag {
+  display: inline-block;
+  background: #e3f2fd;
+  color: #1976d2;
+  font-size: 26rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 32rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05);
+}
+
+.robot-desc {
+  font-size: 28rpx;
+  color: #5d6d7e;
+  text-align: center;
+  line-height: 1.6;
+  padding: 0 10rpx;
+}
+
+.swiper-dots {
+  display: flex;
+  justify-content: center;
+  margin-top: 15rpx;
+  gap: 12rpx;
+}
+
+.dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #bdc3c7;
+  transition: all 0.3s;
+}
+
+.dot.active {
+  width: 36rpx;
+  border-radius: 8rpx;
+  background: #3498db;
+}
+
+.robot-features {
+  display: flex;
+  justify-content: space-around;
+  margin: 20rpx 0 50rpx;
+  z-index: 1;
+  padding: 0 20rpx;
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.feature-icon {
+  width: 56rpx;
+  height: 56rpx;
+  margin-bottom: 12rpx;
+}
+
+.feature-text {
+  font-size: 26rpx;
+  color: #34495e;
+  text-align: center;
+}
+
+.bind-btn {
+  width: 75%;
+  height: 96rpx;
+  background: #bdc3c7;
+  color: white;
+  border-radius: 48rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32rpx;
+  margin: auto;
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+  z-index: 1;
+}
+
+.bind-btn.active {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  box-shadow: 0 8rpx 20rpx rgba(52, 152, 219, 0.3);
+}
+
+.bind-btn:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 3rpx 8rpx rgba(0, 0, 0, 0.08);
+} 

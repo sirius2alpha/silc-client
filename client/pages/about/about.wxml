@@ -1,0 +1,28 @@
+<!--pages/about/about.wxml-->
+<view class="container">
+  <view class="about-card">
+    <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
+    <view class="title">上海大学悉尼工商学院</view>
+    <view class="subtitle">SILC Business School</view>
+    
+    <view class="info-section">
+      <view class="info-item">
+        <view class="info-label">版本号</view>
+        <view class="info-value">{{version}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">开发团队</view>
+        <view class="info-value">{{team}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">联系方式</view>
+        <view class="info-value">{{contact}}</view>
+      </view>
+    </view>
+    
+    <view class="copyright">
+      <text>Copyright © 2025 SILC Business School</text>
+      <text>All Rights Reserved</text>
+    </view>
+  </view>
+</view>

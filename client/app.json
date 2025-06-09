@@ -1,0 +1,59 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/register/register",
+    "pages/chat/chat",
+    "pages/robot-select/robot-select",
+    "pages/history/history",
+    "pages/points/points",
+    "pages/points/mall/mall",
+    "pages/points/record/record",
+    "pages/points/rules/rules",
+    "pages/profile/profile",
+    "pages/info/info",
+    "pages/notifications/notifications",
+    "pages/feedback/feedback",
+    "pages/about/about"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "Silc AI",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#000000",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/chat/chat",
+        "text": "对话",
+        "iconPath": "/assets/tabbar/chat.png",
+        "selectedIconPath": "/assets/tabbar/chat-active.png"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "历史",
+        "iconPath": "/assets/tabbar/history.png",
+        "selectedIconPath": "/assets/tabbar/history-active.png"
+      },
+      {
+        "pagePath": "pages/points/points",
+        "text": "积分",
+        "iconPath": "/assets/tabbar/points.png",
+        "selectedIconPath": "/assets/tabbar/points-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "/assets/tabbar/profile.png",
+        "selectedIconPath": "/assets/tabbar/profile-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

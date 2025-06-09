@@ -1,0 +1,63 @@
+<view class="container">
+  <view class="header">
+    <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
+    <view class="title">注册账号</view>
+  </view>
+
+  <view class="form-box">
+    <view class="input-group">
+      <input 
+        class="input" 
+        type="number" 
+        placeholder="请输入手机号" 
+        model:value="{{phone}}"
+      />
+    </view>
+
+    <view class="input-group verify-code">
+      <input 
+        class="input" 
+        type="number" 
+        placeholder="验证码" 
+        model:value="{{verifyCode}}"
+      />
+      <button 
+        class="code-btn" 
+        disabled="{{counting}}" 
+        bindtap="sendVerifyCode"
+      >
+        {{counting ? countDown + 's' : '获取验证码'}}
+      </button>
+    </view>
+
+    <view class="input-group">
+      <input 
+        class="input" 
+        type="password" 
+        placeholder="请设置密码" 
+        model:value="{{password}}"
+      />
+    </view>
+
+    <view class="input-group">
+      <input 
+        class="input" 
+        type="password" 
+        placeholder="请确认密码" 
+        model:value="{{confirmPassword}}"
+      />
+    </view>
+
+    <button 
+      class="submit-btn" 
+      loading="{{loading}}"
+      bindtap="handleRegister"
+    >
+      注册
+    </button>
+
+    <view class="footer">
+      <text class="link" bindtap="navigateToLogin">已有账号？去登录</text>
+    </view>
+  </view>
+</view> 

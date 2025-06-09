@@ -1,0 +1,37 @@
+<view class="message {{isSelf ? 'self' : 'other'}}">
+  <image 
+    class="avatar" 
+    src="{{isSelf ? '/assets/images/user-avatar.png' : message.robotAvatar}}" 
+    mode="aspectFill"
+  ></image>
+  
+  <view class="content">
+    <view class="nickname">{{isSelf ? '我' : message.robotName}}</view>
+    <view class="bubble">{{message.content}}</view>
+    <view class="time">{{message.createdAt}}</view>
+    
+    <!-- 评价按钮，仅机器人消息显示 -->
+    <view class="actions" wx:if="{{!isSelf && !message.evaluated}}">
+      <text class="action-btn" bindtap="handleShowEvaluation">评价</text>
+    </view>
+    
+    <!-- 评价面板 -->
+    <view class="evaluation-panel" wx:if="{{showEvaluation}}">
+      <view class="evaluation-title">请评价这条回答</view>
+      <view class="score-list">
+        <view 
+          class="score-item" 
+          wx:for="{{5}}" 
+          wx:key="*this"
+          data-score="{{item + 1}}"
+          bindtap="handleEvaluate"
+        >
+          <image 
+            src="{{'/assets/images/star' + (item < message.score ? '-active' : '') + '.png'}}"
+            mode="aspectFit"
+          ></image>
+        </view>
+      </view>
+    </view>
+  </view>
+</view> 

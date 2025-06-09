@@ -1,0 +1,88 @@
+.container {
+  min-height: 100vh;
+  background: #f8f8f8;
+  padding: 20rpx;
+}
+
+.settings-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.settings-group {
+  margin-bottom: 40rpx;
+}
+
+.group-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.item-label {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.label-text {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 6rpx;
+}
+
+.label-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.clear-btn {
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  color: #f5222d;
+  background: #fff;
+  border: none;
+  padding: 0;
+  text-align: left;
+}
+
+.save-btn {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #1296db;
+  color: #fff;
+  font-size: 32rpx;
+  border-radius: 44rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 60rpx 30rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.version-info {
+  text-align: center;
+  padding: 30rpx;
+  color: #999;
+  font-size: 24rpx;
+} 
