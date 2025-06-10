@@ -6,10 +6,10 @@
         <text class="icon">🔥</text>
         <text>大家都在问</text>
       </view>
-      <text class="section-subtitle">热门问题TOP3</text>
+      <text class="section-subtitle">热门问题TOP5</text>
     </view>
     <view class="hot-questions-list">
-      <block wx:for="{{hotQuestions.questions}}" wx:key="question">
+      <block wx:for="{{hotQuestions}}" wx:key="question">
         <view class="hot-question-item">
           <view class="rank-badge">{{index + 1}}</view>
           <view class="question-content">

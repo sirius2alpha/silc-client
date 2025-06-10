@@ -1,5 +1,5 @@
 import { showToast, reLaunch } from '../../utils/util'
-import { login, register, wechatLogin } from '../../api/auth'
+import { login, wechatLogin } from '../../api/auth'
 import { getUserInfo } from '../../api/user'
 
 Page({
@@ -131,37 +131,6 @@ Page({
     } catch (error) {
       console.error('微信登录失败:', error)
       showToast(error.message || '微信登录失败')
-    }
-  },
-
-  // 注册 - 使用 auth.js 中的 register 函数
-  async handleRegister() {
-    const { account, password, loading } = this.data
-    if (loading) return
-
-    if (!account.trim() || !password.trim()) {
-      showToast('请输入账号和密码')
-      return
-    }
-
-    this.setData({ loading: true })
-
-    try {
-      // 使用 auth.js 中的 register 函数
-      const res = await register({ account, password })
-
-      if (res?.code === 200) {
-        showToast('注册成功，请登录')
-        // 注册成功后可以自动登录或让用户手动登录
-      } else {
-        throw new Error(res.message || '注册失败')
-      }
-
-    } catch (error) {
-      console.error('注册失败:', error)
-      showToast(error.message || '注册失败')
-    } finally {
-      this.setData({ loading: false })
     }
   },
 

@@ -19,7 +19,7 @@
         class="input" 
         type="number" 
         placeholder="验证码" 
-        model:value="{{verifyCode}}"
+        model:value="{{code}}"
       />
       <button 
         class="code-btn" 

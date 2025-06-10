@@ -1,4 +1,3 @@
-import { fileURLToPath, URL } from 'node:url'
 import path from 'path'
 
 import { defineConfig } from 'vite'
@@ -23,8 +22,8 @@ export default defineConfig({
     proxy: {
       // 配置代理规则
       '/api': {
-        target: 'https://silcai.cn',
-        // target: 'http://localhost:3005',
+        // target: 'https://silcai.cn',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       }
     }

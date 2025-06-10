@@ -1,10 +1,11 @@
 const { showToast } = require('../../utils/util')
 const request = require('../../utils/request')
+const { register } = require('../../api/auth')
 
 Page({
   data: {
     phone: '',
-    verifyCode: '',
+    code: '',
     password: '',
     confirmPassword: '',
     loading: false,
@@ -68,11 +69,21 @@ Page({
 
   // 注册
   async handleRegister() {
-    const { phone, verifyCode, password, confirmPassword, loading } = this.data
+    const { phone, code, password, confirmPassword, loading } = this.data
     if (loading) return
     
-    if (!phone || !verifyCode || !password || !confirmPassword) {
-      showToast('请填写完整信息')
+    if (!phone || !/^1\d{10}$/.test(phone)) {
+      showToast('请输入正确的手机号')
+      return
+    }
+
+    if (!code || code.length !== 6) {
+      showToast('请输入6位验证码')
+      return
+    }
+
+    if (!password || password.length < 6) {
+      showToast('密码长度不能少于6位')
       return
     }
 
@@ -84,20 +95,25 @@ Page({
     this.setData({ loading: true })
     
     try {
-      await request.post('/api/user/register', {
+      const result = await register({
         phone,
-        verifyCode,
+        code,
         password
       })
 
-      showToast('注册成功', 'success')
-
-      // 延迟返回登录页
-      setTimeout(() => {
-        wx.navigateBack()
-      }, 1500)
+      if (result.code === 200 || result.success === true) {
+        showToast('注册成功', 'success')
+        
+        // 延迟返回登录页
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 1500)
+      } else {
+        showToast(result.message || '注册失败')
+      }
 
     } catch (error) {
+      console.error('注册失败:', error)
       showToast(error.message || '注册失败')
     } finally {
       this.setData({ loading: false })

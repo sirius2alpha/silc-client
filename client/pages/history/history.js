@@ -59,13 +59,13 @@ Page({
         page: refresh ? 1 : page,
         pageSize
       })
-
-      const formattedList = res.data.chats.map(item => {
+      
+      const formattedList = res.data?.chats?.map(item => {
         return {
           ...item,
           time: formatTime(new Date(item.time))
         };
-      })
+      }) || []
 
       // 修改hasMore的判断逻辑
       const hasMore = formattedList.length === pageSize
@@ -149,7 +149,7 @@ Page({
       const res = await getHotQuestions()
       if (res.success) {
         this.setData({
-          hotQuestions: res.data
+          hotQuestions: res.data.questions.slice(0, 5)
         })
       }
     } catch (error) {
