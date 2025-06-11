@@ -1,5 +1,6 @@
 // pages/profile/profile.js
 import { getUserInfo, updateUserInfo } from '../../api/user'
+const notificationApi = require('../../api/notification.js')
 
 Page({
   /**
@@ -12,7 +13,6 @@ Page({
     points: 0,
     selectedRobot: '',
     hasUserInfo: false,
-    notifications: [],
     showNotificationBadge: false
   },
 
@@ -80,19 +80,24 @@ Page({
    */
   async getNotifications() {
     try {
-      // 这里可以实现获取通知的逻辑
-      // 暂时使用模拟数据
-      const notifications = [
-        { id: 1, title: '系统通知', content: '欢迎使用SILC智能助手', time: '刚刚', read: false },
-        { id: 2, title: '更新提示', content: '系统已更新到最新版本', time: '昨天', read: true }
-      ]
-
-      this.setData({
-        notifications: notifications,
-        showNotificationBadge: notifications.some(item => !item.read)
-      })
+      // 获取未读通知数量
+      const response = await notificationApi.getUnreadCount()
+      
+      if (response && (response.code === 200 || response.success)) {
+        const unreadCount = response.data?.unread_count || 0
+        this.setData({
+          showNotificationBadge: unreadCount > 0
+        })
+      } else {
+        this.setData({
+          showNotificationBadge: false
+        })
+      }
     } catch (error) {
       console.error('获取通知失败:', error)
+      this.setData({
+        showNotificationBadge: false
+      })
     }
   },
 
@@ -100,16 +105,6 @@ Page({
    * 读取所有通知
    */
   readAllNotifications() {
-    // 标记所有通知为已读
-    const updatedNotifications = this.data.notifications.map(item => {
-      return { ...item, read: true }
-    })
-
-    this.setData({
-      notifications: updatedNotifications,
-      showNotificationBadge: false
-    })
-
     // 跳转到通知页面
     wx.navigateTo({
       url: '/pages/notifications/notifications'
@@ -150,7 +145,7 @@ Page({
     // 页面显示时刷新数据
     if (wx.getStorageSync('accessToken')) {
       this.getUserInfo()
-      this.getNotifications()
+      this.getNotifications() // 每次显示都刷新红点状态
     }
   },
 

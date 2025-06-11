@@ -1,4 +1,4 @@
-import config from '../config.js'
+const config = require('../config.js')
 const BASE_URL = config.BASE_URL
 
 // 自定义参数序列化函数，替代URLSearchParams

@@ -98,6 +98,18 @@ const router = createRouter({
         }
       ]
     },
+    {
+      path: '/notifications',
+      component: () => import('@/layouts/MainLayout.vue'),
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'Notifications',
+          component: () => import('@/views/notifications.vue')
+        }
+      ]
+    },
   ]
 })
 

@@ -1,11 +1,17 @@
 // pages/notifications/notifications.js
+const notificationApi = require('../../api/notification.js');
+
 Page({
   /**
    * 页面的初始数据
    */
   data: {
     notifications: [],
-    loading: false
+    loading: false,
+    page: 1,
+    pageSize: 20,
+    hasMore: true,
+    unreadCount: 0
   },
 
   /**
@@ -13,103 +19,196 @@ Page({
    */
   onLoad(options) {
     this.getNotifications();
+    this.getUnreadCount();
   },
 
   /**
    * 获取通知列表
    */
-  async getNotifications() {
+  async getNotifications(loadMore = false) {
     try {
       this.setData({ loading: true });
       
-      // 这里应该调用API获取通知，但现在使用模拟数据
-      const notifications = [
-        { id: 1, title: '系统通知', content: '欢迎使用SILC智能助手', time: '2025-04-06 18:00', read: false },
-        { id: 2, title: '更新提示', content: '系统已更新到最新版本', time: '2025-04-05 15:30', read: true },
-        { id: 3, title: '重要消息', content: '您的账户安全检查已完成', time: '2025-04-04 10:15', read: false }
-      ];
+      const page = loadMore ? this.data.page + 1 : 1;
       
-      setTimeout(() => {
+      const response = await notificationApi.getUserNotifications({
+        page: page,
+        pageSize: this.data.pageSize
+      });
+      
+      if (response && (response.code === 200 || response.success)) {
+        const newNotifications = response.data?.notifications || [];
+        const notifications = loadMore ? 
+          [...this.data.notifications, ...newNotifications] : 
+          newNotifications;
+        
+        // 格式化通知数据
+        const formattedNotifications = notifications.map(item => ({
+          id: item.id,
+          title: item.title,
+          content: item.content,
+          time: this.formatTime(item.created_at),
+          read: item.is_read,
+          type: item.type
+        }));
+        
         this.setData({
-          notifications: notifications,
+          notifications: formattedNotifications,
+          page: page,
+          hasMore: newNotifications.length === this.data.pageSize,
           loading: false
         });
-      }, 500);
+      } else {
+        throw new Error(response?.message || '获取通知失败');
+      }
     } catch (error) {
       console.error('获取通知失败:', error);
       this.setData({ loading: false });
       wx.showToast({
-        title: '获取通知失败',
+        title: error.message || '获取通知失败',
         icon: 'none'
       });
     }
   },
 
   /**
+   * 获取未读通知数量
+   */
+  async getUnreadCount() {
+    try {
+      const response = await notificationApi.getUnreadCount();
+      if (response && (response.code === 200 || response.success)) {
+        this.setData({
+          unreadCount: response.data?.unread_count || 0
+        });
+      }
+    } catch (error) {
+      console.error('获取未读通知数量失败:', error);
+    }
+  },
+
+  /**
    * 标记通知为已读
    */
-  markAsRead(e) {
+  async markAsRead(e) {
     const { id } = e.currentTarget.dataset;
     const { notifications } = this.data;
     
-    const updatedNotifications = notifications.map(item => {
-      if (item.id === id) {
-        return { ...item, read: true };
+    try {
+      const response = await notificationApi.markAsRead(id);
+      
+      if (response && (response.code === 200 || response.success)) {
+        const updatedNotifications = notifications.map(item => {
+          if (item.id === id) {
+            return { ...item, read: true };
+          }
+          return item;
+        });
+        
+        this.setData({ notifications: updatedNotifications });
+        this.getUnreadCount(); // 更新未读数量
+        
+        wx.showToast({
+          title: '已标记为已读',
+          icon: 'success'
+        });
+      } else {
+        throw new Error(response?.message || '标记已读失败');
       }
-      return item;
-    });
-    
-    this.setData({ notifications: updatedNotifications });
-    
-    // 这里应该调用API更新通知状态
-    wx.showToast({
-      title: '已标记为已读',
-      icon: 'success'
-    });
+    } catch (error) {
+      console.error('标记已读失败:', error);
+      wx.showToast({
+        title: error.message || '标记已读失败',
+        icon: 'none'
+      });
+    }
   },
 
   /**
    * 全部标记为已读
    */
-  markAllAsRead() {
-    const { notifications } = this.data;
-    
-    const updatedNotifications = notifications.map(item => {
-      return { ...item, read: true };
-    });
-    
-    this.setData({ notifications: updatedNotifications });
-    
-    // 这里应该调用API更新所有通知状态
-    wx.showToast({
-      title: '全部已读',
-      icon: 'success'
-    });
+  async markAllAsRead() {
+    try {
+      const response = await notificationApi.markAllAsRead();
+      
+      if (response && (response.code === 200 || response.success)) {
+        const { notifications } = this.data;
+        const updatedNotifications = notifications.map(item => {
+          return { ...item, read: true };
+        });
+        
+        this.setData({ 
+          notifications: updatedNotifications,
+          unreadCount: 0
+        });
+        
+        wx.showToast({
+          title: '全部已读',
+          icon: 'success'
+        });
+      } else {
+        throw new Error(response?.message || '全部标记已读失败');
+      }
+    } catch (error) {
+      console.error('全部标记已读失败:', error);
+      wx.showToast({
+        title: error.message || '全部标记已读失败',
+        icon: 'none'
+      });
+    }
   },
 
   /**
-   * 删除通知
+   * 格式化时间
    */
-  deleteNotification(e) {
-    const { id } = e.currentTarget.dataset;
-    const { notifications } = this.data;
+  formatTime(timeStr) {
+    if (!timeStr) return '';
+    const date = new Date(timeStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
     
-    const updatedNotifications = notifications.filter(item => item.id !== id);
-    
-    this.setData({ notifications: updatedNotifications });
-    
-    // 这里应该调用API删除通知
-    wx.showToast({
-      title: '已删除',
-      icon: 'success'
-    });
+    // 一分钟内
+    if (diff < 60 * 1000) {
+      return '刚刚';
+    }
+    // 一小时内
+    else if (diff < 60 * 60 * 1000) {
+      return Math.floor(diff / (60 * 1000)) + '分钟前';
+    }
+    // 一天内
+    else if (diff < 24 * 60 * 60 * 1000) {
+      return Math.floor(diff / (60 * 60 * 1000)) + '小时前';
+    }
+    // 超过一天
+    else {
+      return date.toLocaleDateString('zh-CN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
   },
 
   /**
    * 页面相关事件处理函数--监听用户下拉动作
    */
   onPullDownRefresh() {
+    this.setData({
+      page: 1,
+      hasMore: true
+    });
     this.getNotifications();
+    this.getUnreadCount();
     wx.stopPullDownRefresh();
+  },
+
+  /**
+   * 页面上拉触底事件处理函数
+   */
+  onReachBottom() {
+    if (this.data.hasMore && !this.data.loading) {
+      this.getNotifications(true);
+    }
   }
 }); 

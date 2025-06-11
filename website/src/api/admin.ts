@@ -291,3 +291,50 @@ export const generateUploadURL = (fileType: string) => {
     file_type: fileType
   })
 }
+
+/*notifications*/
+
+// 获取通知列表
+export const getNotificationList = (params: {
+  page: number;
+  pageSize: number;
+  status?: string;
+  type?: string;
+  keyword?: string;
+}) => {
+  const queryParams: any = {
+    "pagination.page": params.page,
+    "pagination.page_size": params.pageSize,
+  }
+
+  // 只添加有值的参数
+  if (params.status) queryParams.status = params.status
+  if (params.type) queryParams.type = params.type
+  if (params.keyword) queryParams.keyword = params.keyword
+
+  return request.get('/api/admin/notifications', { params: queryParams })
+}
+
+// 创建通知
+export const createNotification = (data: {
+  title: string;
+  content: string;
+  type: string;
+}) => {
+  return request.post('/api/admin/notifications', data)
+}
+
+// 更新通知状态
+export const updateNotificationStatus = (notificationId: string, status: string) => {
+  return request.put('/api/admin/notifications/status', {
+    notification_id: notificationId,
+    status: status
+  })
+}
+
+// 删除通知
+export const deleteNotification = (notificationId: string) => {
+  return request.delete('/api/admin/notifications', {
+    data: { notification_id: notificationId }
+  })
+}

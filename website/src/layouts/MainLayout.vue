@@ -37,6 +37,11 @@
           <el-icon><List /></el-icon>
           <span>兑换记录</span>
         </router-link>
+        
+        <router-link to="/notifications" class="nav-item">
+          <el-icon><Bell /></el-icon>
+          <span>通知管理</span>
+        </router-link>
       </nav>
     </aside>
 
@@ -71,7 +76,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { DataLine, Collection, ChatLineRound, Message, Setting, User, Goods, List } from '@element-plus/icons-vue'
+import { DataLine, Collection, ChatLineRound, Message, Setting, User, Goods, List, Bell } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const username = ref('管理员')

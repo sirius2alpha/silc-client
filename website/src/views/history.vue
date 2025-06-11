@@ -327,15 +327,20 @@ const fetchChatList = async () => {
       endDate: dateRange.value?.[1] || ''
     })
     
+    console.log('API响应完整数据:', response)
+    
     // 处理API返回的数据结构
-    if (response.data && response.data.items) {
-      chatList.value = response.data.items.map((item: any) => ({
+    // 由于响应拦截器返回的是data字段，所以response直接包含items和pagination
+    if (response.items) {
+      chatList.value = response.items.map((item: any) => ({
         ...item,
         // 处理标签数据，确保向后兼容
         tags: item.tags || (item.tag ? [item.tag] : []),
         tag: item.tag || (item.tags && item.tags.length > 0 ? item.tags[0] : undefined)
       }))
-      total.value = response.data.pagination?.total || 0
+      // 从响应中获取total值
+      total.value = response.pagination?.total || 0
+      console.log('设置total为:', total.value)
     } else {
       // 兼容旧的数据结构
       chatList.value = (response.items || []).map((item: any) => ({
@@ -359,6 +364,7 @@ const fetchChatList = async () => {
     availableTags.value = Array.from(tags)
     availableRobotIds.value = Array.from(new Set(chatList.value.map(item => item.robotId)))
   } catch (error) {
+    console.error('获取对话记录失败:', error)
     ElMessage.error('获取对话记录失败')
   } finally {
     loading.value = false
@@ -384,7 +390,8 @@ const handleViewDetail = async (row: ChatItem) => {
   try {
     const response = await getChatDetail(row.id)
     console.log('API响应:', response)
-    const chatData = response.data?.chat || response.chat || response
+    // 由于响应拦截器返回的是data字段，所以response直接包含chat数据
+    const chatData = response.chat || response
     console.log('处理后的聊天数据:', chatData)
     
     currentChat.value = {
