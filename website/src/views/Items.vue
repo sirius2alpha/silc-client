@@ -137,9 +137,19 @@ const fetchItems = async () => {
       page: currentPage.value,
       pageSize: pageSize.value
     })
-    items.value = res.items
-    total.value = res.total
+    console.log('商品列表响应:', res) // 调试用
+    
+    // 处理新的响应格式
+    if (res.data) {
+      items.value = res.data.items || []
+      total.value = res.data.pagination?.total || 0
+    } else {
+      // 兼容旧格式
+      items.value = res.items || []
+      total.value = res.pagination?.total || res.total || 0
+    }
   } catch (error) {
+    console.error('获取商品列表失败:', error)
     ElMessage.error('获取商品列表失败')
   } finally {
     loading.value = false

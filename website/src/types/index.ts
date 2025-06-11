@@ -2,7 +2,7 @@ import type { User } from './user'
 
 // 登录表单
 export interface LoginForm {
-    username: string
+    account: string
     password: string
   }
   

@@ -31,6 +31,21 @@
     >
       <el-table-column prop="title" label="标题" min-width="200" />
       <el-table-column prop="content" label="内容" min-width="300" show-overflow-tooltip />
+      <el-table-column prop="tags" label="标签" width="200">
+        <template #default="{ row }">
+          <div class="tags-container">
+            <el-tag
+              v-for="(tag, index) in (row.tags || [])"
+              :key="`${row.id}-tag-${index}`"
+              size="small"
+              class="tag-item"
+            >
+              {{ tag }}
+            </el-tag>
+            <span v-if="!row.tags || row.tags.length === 0" class="no-tags">暂无标签</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="createdAt" label="创建时间" width="180">
         <template #default="{ row }">
           {{ formatDate(row.createdAt) }}
@@ -92,6 +107,54 @@
             placeholder="请输入内容"
           />
         </el-form-item>
+        <el-form-item label="标签" prop="tags">
+          <div class="tags-editor">
+            <div class="current-tags">
+              <el-tag
+                v-for="(tag, index) in form.tags"
+                :key="index"
+                :closable="true"
+                size="small"
+                class="tag-item"
+                @close="removeTag(index)"
+              >
+                {{ tag }}
+              </el-tag>
+            </div>
+            <div class="tag-input-section">
+              <el-autocomplete
+                v-model="newTagInput"
+                :fetch-suggestions="querySearchTags"
+                placeholder="输入新标签"
+                class="tag-input"
+                clearable
+                @select="addExistingTag"
+                @keyup.enter="addNewTag"
+              >
+                                 <template #default="{ item }">
+                   <div class="suggestion-item">
+                     <el-icon><PriceTag /></el-icon>
+                     <span>{{ item.value }}</span>
+                   </div>
+                 </template>
+              </el-autocomplete>
+              <el-button type="primary" size="small" @click="addNewTag">添加标签</el-button>
+            </div>
+            <div v-if="availableTags.length > 0" class="available-tags">
+              <span class="available-tags-label">常用标签：</span>
+              <el-tag
+                v-for="(tag, index) in availableTags.slice(0, 10)"
+                :key="`available-tag-${index}`"
+                size="small"
+                class="available-tag"
+                :class="{ 'tag-selected': form.tags.includes(tag) }"
+                @click="toggleTag(tag)"
+              >
+                {{ tag }}
+              </el-tag>
+            </div>
+          </div>
+        </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -104,26 +167,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Upload, Edit, Delete } from '@element-plus/icons-vue'
-import { getKnowledgeList, uploadKnowledge, deleteKnowledge, updateKnowledge } from '@/api/admin'
+import { Search, Upload, Edit, Delete, PriceTag } from '@element-plus/icons-vue'
+import { getKnowledgeList, manageKnowledge, KnowledgeOperation } from '@/api/admin'
 import request from '@/utils/request'
 import { formatDateTime } from '@/utils/date'
 
 interface KnowledgeItem {
-  _id: string
+  id: string
   title: string
   content: string
   createdAt: string
-  robotName: string
-  category: string
-  tags: string[]
-  status: string
-  embeddings: boolean
-  vector: Record<string, number>
+  robotName?: string
+  category?: string
+  tags?: string[]
+  status?: string
+  embeddings?: boolean
+  vector?: Record<string, number>
   updatedAt: string
-  __v: number
+  __v?: number
 }
 
 const loading = ref(false)
@@ -135,15 +198,71 @@ const total = ref(0)
 const dialogVisible = ref(false)
 const dialogType = ref<'upload' | 'edit'>('upload')
 const formRef = ref()
+const newTagInput = ref('')
+const currentEditingId = ref('')
 
 const form = reactive({
   title: '',
-  content: ''
+  content: '',
+  tags: [] as string[]
 })
 
 const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入内容', trigger: 'blur' }]
+}
+
+// 计算所有可用的标签
+const availableTags = computed(() => {
+  const allTags = new Set<string>()
+  knowledgeList.value.forEach(item => {
+    if (item.tags && Array.isArray(item.tags)) {
+      item.tags.forEach(tag => allTags.add(tag))
+    }
+  })
+  return Array.from(allTags).filter(tag => !form.tags.includes(tag))
+})
+
+// 标签搜索建议
+const querySearchTags = (queryString: string, cb: (suggestions: any[]) => void) => {
+  const suggestions = availableTags.value
+    .filter(tag => tag.toLowerCase().includes(queryString.toLowerCase()))
+    .map(tag => ({ value: tag }))
+  cb(suggestions)
+}
+
+// 添加新标签
+const addNewTag = () => {
+  const tag = newTagInput.value.trim()
+  if (tag && !form.tags.includes(tag)) {
+    form.tags.push(tag)
+    newTagInput.value = ''
+  } else if (form.tags.includes(tag)) {
+    ElMessage.warning('标签已存在')
+  }
+}
+
+// 添加现有标签
+const addExistingTag = (item: { value: string }) => {
+  if (!form.tags.includes(item.value)) {
+    form.tags.push(item.value)
+    newTagInput.value = ''
+  }
+}
+
+// 切换标签（添加或移除）
+const toggleTag = (tag: string) => {
+  const index = form.tags.indexOf(tag)
+  if (index > -1) {
+    form.tags.splice(index, 1)
+  } else {
+    form.tags.push(tag)
+  }
+}
+
+// 移除标签
+const removeTag = (index: number) => {
+  form.tags.splice(index, 1)
 }
 
 const fetchKnowledgeList = async () => {
@@ -201,6 +320,9 @@ const handleUpload = () => {
   dialogType.value = 'upload'
   form.title = ''
   form.content = ''
+  form.tags = []
+  newTagInput.value = ''
+  currentEditingId.value = ''
   dialogVisible.value = true
 }
 
@@ -208,6 +330,9 @@ const handleEdit = (row: KnowledgeItem) => {
   dialogType.value = 'edit'
   form.title = row.title
   form.content = row.content
+  form.tags = [...(row.tags || [])]
+  newTagInput.value = ''
+  currentEditingId.value = row.id
   dialogVisible.value = true
 }
 
@@ -218,7 +343,15 @@ const handleDelete = async (row: KnowledgeItem) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await deleteKnowledge(row._id)
+    await manageKnowledge({
+      operation: KnowledgeOperation.DELETE,
+      knowledge_id: row.id,
+      knowledge_data: {
+        title: row.title,
+        content: row.content,
+        tags: row.tags || []
+      }
+    })
     ElMessage.success('删除成功')
     fetchKnowledgeList()
   } catch (error) {
@@ -228,28 +361,42 @@ const handleDelete = async (row: KnowledgeItem) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
-  await formRef.value.validate()
+  
+  try {
+    await formRef.value.validate()
+  } catch (error) {
+    console.error('表单验证失败:', error)
+    return
+  }
   
   try {
     if (dialogType.value === 'upload') {
-      const formData = new FormData()
-      formData.append('title', form.title)
-      formData.append('content', form.content)
-      await uploadKnowledge(formData)
+      await manageKnowledge({
+        operation: KnowledgeOperation.CREATE,
+        knowledge_id: '',
+        knowledge_data: {
+          title: form.title,
+          content: form.content,
+          tags: form.tags
+        }
+      })
       ElMessage.success('上传成功')
     } else {
-      const currentRow = knowledgeList.value.find(item => item.title === form.title)
-      if (currentRow) {
-        await updateKnowledge(currentRow._id, form)
-        ElMessage.success('更新成功')
-      } else {
-        ElMessage.error('未找到要更新的记录')
-        return
-      }
+      await manageKnowledge({
+        operation: KnowledgeOperation.UPDATE,
+        knowledge_id: currentEditingId.value,
+        knowledge_data: {
+          title: form.title,
+          content: form.content,
+          tags: form.tags
+        }
+      })
+      ElMessage.success('更新成功')
     }
     dialogVisible.value = false
     fetchKnowledgeList()
   } catch (error) {
+    console.error('操作失败:', error)
     ElMessage.error(dialogType.value === 'upload' ? '上传失败' : '更新失败')
   }
 }
@@ -298,5 +445,96 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* 标签相关样式 */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.tag-item {
+  margin: 2px;
+}
+
+.no-tags {
+  color: #909399;
+  font-size: 12px;
+}
+
+.tags-editor {
+  width: 100%;
+}
+
+.current-tags {
+  margin-bottom: 10px;
+  min-height: 32px;
+  padding: 6px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.current-tags:empty::before {
+  content: '暂无标签';
+  color: #c0c4cc;
+  font-size: 14px;
+}
+
+.tag-input-section {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.tag-input {
+  flex: 1;
+  max-width: 200px;
+}
+
+.available-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 8px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+}
+
+.available-tags-label {
+  color: #606266;
+  font-size: 12px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.available-tag {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.available-tag:hover {
+  background-color: #ecf5ff;
+  border-color: #b3d8ff;
+  color: #409eff;
+}
+
+.available-tag.tag-selected {
+  background-color: #409eff;
+  border-color: #409eff;
+  color: white;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 </style> 

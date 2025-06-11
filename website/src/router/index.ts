@@ -16,84 +16,84 @@ const router = createRouter({
     },
     {
       path: '/dashboard',
-      name: 'Dashboard',
       component: () => import('@/layouts/MainLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
+          name: 'Dashboard',
           component: () => import('@/views/dashboard.vue')
         }
       ]
     },
     {
       path: '/users',
-      name: 'Users',
       component: () => import('@/layouts/MainLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
+          name: 'Users',
           component: () => import('@/views/users.vue')
         }
       ]
     },
     {
       path: '/knowledge',
-      name: 'Knowledge',
       component: () => import('@/layouts/MainLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
+          name: 'Knowledge',
           component: () => import('@/views/knowledge.vue')
         }
       ]
     },
     {
       path: '/history',
-      name: 'History',
       component: () => import('@/layouts/MainLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
+          name: 'History',
           component: () => import('@/views/history.vue')
         }
       ]
     },
     {
       path: '/feedback',
-      name: 'Feedback',
       component: () => import('@/layouts/MainLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
+          name: 'Feedback',
           component: () => import('@/views/feedback.vue')
         }
       ]
     },
     {
       path: '/items',
-      name: 'Items',
       component: () => import('@/layouts/MainLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
+          name: 'Items',
           component: () => import('@/views/Items.vue')
         }
       ]
     },
     {
       path: '/records',
-      name: 'Records',
       component: () => import('@/layouts/MainLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
+          name: 'Records',
           component: () => import('@/views/Records.vue')
         }
       ]
@@ -103,8 +103,8 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  if (to.meta.requiresAuth && !token) {
+  const accessToken = localStorage.getItem('accessToken')
+  if (to.meta.requiresAuth && !accessToken) {
     next('/login')
   } else {
     next()

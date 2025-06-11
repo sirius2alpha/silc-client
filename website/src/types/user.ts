@@ -13,14 +13,15 @@ export interface User {
 }
 
 export interface LoginForm {
-  username: string
+  account: string
   password: string
 }
 
 export interface AuthResponse {
   success: boolean
   data?: {
-    token: string
+    accessToken: string
+    refreshToken: string
     user: User
   }
 } 

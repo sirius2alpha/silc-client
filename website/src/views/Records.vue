@@ -47,26 +47,26 @@
       </div>
 
       <el-table :data="records" style="width: 100%" v-loading="loading">
-        <el-table-column prop="order_no" label="订单号" width="180" />
-        <el-table-column prop="item_name" label="商品名称" />
-        <el-table-column prop="item_points" label="所需积分" width="100" />
+        <el-table-column prop="orderNo" label="订单号" width="180" />
+        <el-table-column prop="itemName" label="商品名称" />
         <el-table-column label="兑换状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.is_redeemed ? 'success' : 'warning'">
-              {{ row.is_redeemed ? '已核销' : '待核销' }}
+            <el-tag :type="row.isRedeemed ? 'success' : 'warning'">
+              {{ row.isRedeemed ? '已核销' : '待核销' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="兑换时间" width="180" >
+        <el-table-column prop="createdAt" label="兑换时间" width="180" >
           <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
+            {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column prop="redeemed_at" label="核销时间" width="180" >
+        <el-table-column prop="redeemedAt" label="核销时间" width="180" >
           <template #default="{ row }">
-            {{ row.redeemed_at ? formatDate(row.redeemed_at) : '' }}
+            {{ row.redeemedAt ? formatDate(row.redeemedAt) : '-' }}
           </template>
         </el-table-column>
+
       </el-table>
       <div class="pagination">
         <el-pagination
@@ -85,7 +85,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getExchangeRecords, verifyByCode } from '@/api/admin'
 import { formatDateTime } from '@/utils/date'
 
@@ -100,6 +100,7 @@ const search = ref('')
 const dateRange = ref([])
 const verifyCode = ref('')
 
+
 // 获取兑换记录
 const fetchRecords = async () => {
   loading.value = true
@@ -111,10 +112,22 @@ const fetchRecords = async () => {
       startDate: dateRange.value?.[0],
       endDate: dateRange.value?.[1]
     })
-    records.value = res.items
-    total.value = res.total
-    pendingStats.value = res.pendingStats
+    console.log('兑换记录响应:', res) // 调试用
+    
+    // 处理响应数据格式
+    if (res.data) {
+      records.value = res.data.list || []
+      total.value = res.data.pagination?.total || 0
+      // 处理待核销统计数据
+      pendingStats.value = res.data.pendingStats || []
+    } else {
+      // 兼容旧格式
+      records.value = res.list || res.items || []
+      total.value = res.pagination?.total || res.total || 0
+      pendingStats.value = res.pendingStats || []
+    }
   } catch (error) {
+    console.error('获取兑换记录失败:', error)
     ElMessage.error('获取兑换记录失败')
   } finally {
     loading.value = false
@@ -157,6 +170,8 @@ const handleVerify = async () => {
     verifying.value = false
   }
 }
+
+
 
 const formatDate = (date: string) => {
   return formatDateTime(date)
