@@ -19,6 +19,13 @@
         </view>
       </view>
       <view class="info-item">
+        <view class="label">聊天背景</view>
+        <view class="value">
+          <image class="bgpic" src="{{userInfo.bgpic || '/assets/images/default-bg.png'}}" wx:if="{{userInfo.bgpic}}" mode="aspectFill" lazy-load="{{false}}"></image>
+          <view class="no-bgpic" wx:else>未设置背景图</view>
+        </view>
+      </view>
+      <view class="info-item">
         <view class="label">昵称</view>
         <view class="value">{{userInfo.nickname || userInfo.username || '未设置'}}</view>
       </view>
@@ -32,9 +39,23 @@
     <block wx:else>
       <view class="info-item">
         <view class="label">头像</view>
-        <view class="value" bindtap="chooseAvatar">
-          <image class="avatar" src="{{formData.avatar || '/assets/images/default-avatar.png'}}"></image>
-          <view class="edit-hint">点击修改</view>
+        <view class="value">
+          <view class="image-container" bindtap="chooseAvatar">
+            <image class="avatar" src="{{formData.avatar || '/assets/images/default-avatar.png'}}"></image>
+            <view class="edit-hint">点击修改</view>
+          </view>
+          <view class="clear-btn" bindtap="clearAvatar" wx:if="{{formData.avatar}}">清空</view>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="label">聊天背景</view>
+        <view class="value">
+          <view class="image-container" bindtap="chooseBgpic">
+            <image class="bgpic" src="{{formData.bgpic || '/assets/images/default-bg.png'}}" wx:if="{{formData.bgpic}}" mode="aspectFill" lazy-load="{{false}}"></image>
+            <view class="no-bgpic" wx:else>点击选择背景图</view>
+            <view class="edit-hint">点击修改</view>
+          </view>
+          <view class="clear-btn" bindtap="clearBgpic" wx:if="{{formData.bgpic}}">清空</view>
         </view>
       </view>
       <view class="info-item">

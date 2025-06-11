@@ -4,6 +4,34 @@
   flex-direction: column;
   height: 100vh;
   background-color: #f5f5f5;
+  position: relative;
+}
+
+/* 背景图容器 */
+.chat-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+/* 背景图片 */
+.background-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 白色蒙版 */
+.background-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 .chat-list {
@@ -12,6 +40,8 @@
   box-sizing: border-box;
   overflow-y: auto;
   padding-bottom: 120rpx;
+  position: relative;
+  z-index: 1;
 }
 
 .chat-list-content {
@@ -205,7 +235,7 @@
   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
-  z-index: 100;
+  z-index: 200;
   transition: transform 0.3s ease;
 }
 

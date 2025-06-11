@@ -72,18 +72,17 @@ Page({
       RobotInfo = app.globalData.selectedRobot || wx.getStorageSync('selectedRobot')
     } else {
       console.log('已加载用户信息:', { userId, username: nickname, RobotInfo })
+      // 仍然调用loadUserInfo获取最新的用户信息（包括bgpic）
+      await this.loadUserInfo()
       // 更新全局数据
       app.globalData.userId = userId
-      app.globalData.userInfo = { id: userId, nickname: nickname }
       app.globalData.selectedRobot = RobotInfo
       wx.setStorageSync('userId', userId)
-      wx.setStorageSync('userInfo', { id: userId, nickname: nickname })
       wx.setStorageSync('selectedRobot', RobotInfo)
     }
 
-    // 设置页面数据
+    // 设置页面数据，userInfo会在loadUserInfo中更新
     this.setData({
-      userInfo: { id: userId, nickname: nickname },
       robot: RobotInfo
     })
 
@@ -104,6 +103,9 @@ Page({
 
     console.log('使用机器人:', RobotInfo)
     this.loadHistory()
+    
+    // 初始化背景图
+    this.updateUserBackground()
   },
 
   onShow() {
@@ -116,6 +118,9 @@ Page({
       })
       return
     }
+
+    // 检查并更新用户背景图
+    this.updateUserBackground()
 
     // 检查机器人选择状态
     const app = getApp()
@@ -458,7 +463,7 @@ Page({
       }
 
       // 处理不同的响应格式
-      let userData = res.data
+      let userData = res.data?.user || res.data || res
 
       console.log('设置用户信息:', userData)
 
@@ -471,6 +476,11 @@ Page({
       // 更新本地存储
       wx.setStorageSync('userInfo', userData)
       this.setData({ userInfo: userData })
+
+      console.log('用户信息加载完成，包含bgpic:', userData.bgpic)
+      
+      // 强制更新背景图
+      this.updatePageBackground(userData.bgpic)
     } catch (error) {
       console.error('加载用户信息失败:', error)
       this.setData({ userInfo: { nickname: '我' } })
@@ -559,4 +569,54 @@ Page({
       this.scrollToBottom()
     }
   },
+
+  // 更新用户背景图
+  updateUserBackground() {
+    const app = getApp()
+    const latestUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
+    
+    console.log('检查背景图更新:', {
+      hasLatestUserInfo: !!latestUserInfo,
+      currentBgpic: this.data.userInfo?.bgpic,
+      latestBgpic: latestUserInfo?.bgpic
+    })
+    
+    if (latestUserInfo) {
+      // 检查背景图是否有更新（包括首次加载的情况）
+      const currentBgpic = this.data.userInfo?.bgpic
+      const latestBgpic = latestUserInfo.bgpic
+      
+      if (latestBgpic !== currentBgpic) {
+        console.log('检测到背景图更新，刷新页面背景:', latestBgpic)
+        
+        // 更新userInfo数据
+        this.setData({
+          userInfo: {
+            ...this.data.userInfo,
+            bgpic: latestBgpic
+          }
+        })
+        
+        // 通知页面重新渲染背景
+        this.updatePageBackground(latestBgpic)
+      }
+    }
+  },
+
+  // 更新页面背景
+  updatePageBackground(bgpicUrl) {
+    console.log('更新页面背景图:', bgpicUrl)
+    
+    if (bgpicUrl) {
+      // 如果有背景图，设置页面背景
+      this.setData({
+        chatBackgroundImage: bgpicUrl
+      })
+    } else {
+      // 如果没有背景图，清除背景
+      this.setData({
+        chatBackgroundImage: ''
+      })
+    }
+  }
 }) 

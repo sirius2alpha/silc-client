@@ -284,3 +284,10 @@ export const verifyByCode = (recordId: string) => {
     admin_id: "" // 后端会从token中获取管理员ID
   })
 }
+
+// 生成上传URL
+export const generateUploadURL = (fileType: string) => {
+  return request.post('/api/admin/upload-url', {
+    file_type: fileType
+  })
+}

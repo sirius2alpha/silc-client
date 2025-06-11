@@ -78,9 +78,10 @@
         <el-form-item label="图片">
           <el-upload
             class="avatar-uploader"
-            action="/api/admin/upload"
             :show-file-list="false"
-            :on-success="handleUploadSuccess"
+            :before-upload="handleBeforeUpload"
+            :http-request="handleUpload"
+            accept="image/*"
           >
             <img v-if="form.image" :src="form.image" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
@@ -101,7 +102,8 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { getStoreItems, addStoreItem, updateStoreItem, deleteStoreItem, updateStoreItemStatus } from '@/api/admin'
+import request from '@/utils/request'
+import { getStoreItems, addStoreItem, updateStoreItem, deleteStoreItem, updateStoreItemStatus, generateUploadURL } from '@/api/admin'
 
 interface StoreItem {
   id?: string;
@@ -221,9 +223,68 @@ const handleDelete = (row: any) => {
   });
 }
 
-// 处理图片上传成功
-const handleUploadSuccess = (res: any) => {
-  form.value.image = res.data.url
+// 处理上传前的检查
+const handleBeforeUpload = (file: File) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件!')
+    return false
+  }
+  if (!isLt2M) {
+    ElMessage.error('图片大小不能超过 2MB!')
+    return false
+  }
+  return true
+}
+
+// 自定义上传方法
+const handleUpload = async (options: any) => {
+  const file = options.file
+  
+  try {
+    console.log('开始上传文件:', file.name, '大小:', file.size)
+    
+    // 获取预授权上传URL
+    const uploadResponse = await generateUploadURL('item')
+    console.log('上传URL响应:', uploadResponse)
+    
+    const uploadUrl = uploadResponse.data?.uploadUrl || uploadResponse.uploadUrl
+    const accessUrl = uploadResponse.data?.accessUrl || uploadResponse.accessUrl
+    
+    if (!uploadUrl || !accessUrl) {
+      throw new Error('获取上传URL失败：响应数据不完整')
+    }
+    
+    console.log('准备上传到COS:', uploadUrl)
+    
+    // 直接使用预授权URL上传文件
+    const response = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type
+      }
+    })
+    
+    console.log('COS响应状态:', response.status, response.statusText)
+    
+    if (response.ok) {
+      form.value.image = accessUrl
+      ElMessage.success('图片上传成功')
+      options.onSuccess(response)
+    } else {
+      const errorText = await response.text()
+      console.error('COS上传失败:', response.status, errorText)
+      throw new Error(`上传失败: ${response.status} ${response.statusText}`)
+    }
+    
+  } catch (error: any) {
+    console.error('图片上传失败:', error)
+    ElMessage.error(`图片上传失败: ${error.message || error}`)
+    options.onError(error)
+  }
 }
 
 // 处理表单提交

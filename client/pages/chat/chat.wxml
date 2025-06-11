@@ -1,4 +1,10 @@
 <view class="chat-container">
+  <!-- 背景图和蒙版 -->
+  <view class="chat-background" wx:if="{{userInfo.bgpic}}">
+    <image class="background-image" src="{{userInfo.bgpic}}" mode="aspectFill" lazy-load="{{false}}"></image>
+    <view class="background-mask"></view>
+  </view>
+  
   <!-- 聊天记录区域 -->
   <scroll-view class="chat-list" scroll-y scroll-top="{{scrollTop}}" scroll-into-view="{{scrollToMessage}}" bindscroll="onScroll" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd" enhanced="true" show-scrollbar="false">
     <view class="chat-list-content">
