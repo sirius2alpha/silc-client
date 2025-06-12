@@ -70,3 +70,20 @@ export const wechatLogin = async ({ code }) => {
         throw error
     }
 }
+
+// 退出登录
+export const logout = async () => {
+    try {
+        const token = wx.getStorageSync('accessToken')
+        console.log('发送退出登录请求')
+        const result = await request.post('/api/auth/logout', null, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        return result
+    } catch (error) {
+        console.error('退出登录请求失败:', error)
+        throw error
+    }
+}

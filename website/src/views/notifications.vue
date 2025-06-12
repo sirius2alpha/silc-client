@@ -64,7 +64,7 @@
         </el-table-column>
         <el-table-column prop="created_at" label="创建时间" width="180">
           <template #default="{ row }">
-            {{ formatTime(row.created_at) }}
+            {{ formatTime(row.createdAt) }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
@@ -131,6 +131,7 @@ import {
   updateNotificationStatus,
   deleteNotification as deleteNotificationAPI
 } from '../api/admin'
+import { formatTime } from '../utils/util'
 
 // 响应式数据
 const loading = ref(false)
@@ -186,7 +187,6 @@ const fetchNotifications = async () => {
       type: searchForm.type || undefined,
       status: searchForm.status || undefined
     })
-    console.log("完整的 res 结构:", res);
 
     if (res) {
       notificationList.value = res.notifications || []
@@ -320,19 +320,6 @@ const getTypeText = (type: string) => {
     update: '更新提醒'
   }
   return typeMap[type] || type
-}
-
-// 格式化时间
-const formatTime = (timeStr: string) => {
-  if (!timeStr) return ''
-  const date = new Date(timeStr)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 }
 
 // 组件挂载时获取数据

@@ -48,5 +48,15 @@
         <text class="arrow">></text>
       </view>
     </view>
+
+    <view class="function-item" bindtap="handleLogout">
+      <view class="item-left">
+        <image class="item-icon" src="/assets/icons/logout.png" mode="aspectFit"></image>
+        <text class="item-name">退出登录</text>
+      </view>
+      <view class="item-right">
+        <text class="arrow">></text>
+      </view>
+    </view>
   </view>
 </view>

@@ -38,8 +38,6 @@
       scroll-y="true" 
       enable-flex="true"
       bindscrolltolower="onReachBottom"
-      refresher-enabled="{{true}}"
-      bindrefresherrefresh="onPullDownRefresh"
     >
       <view class="history-list">
         <view 

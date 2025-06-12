@@ -21,24 +21,73 @@ Page({
     monthPoints: 0, // 本月积分
     usedPoints: 0, // 已使用积分
     dateRanges: ['全部', '本周', '本月', '今年'],
-    dateRangeIndex: 0
+    dateRangeIndex: 0,
+    
+    // 添加数据缓存状态
+    lastLoadTime: 0, // 上次加载时间
+    dataLoaded: false, // 数据是否已加载
+    cacheTimeout: 5 * 60 * 1000 // 5分钟缓存时间
   },
 
-  onLoad() { },
+  onLoad() { 
+    // 初始加载数据
+    this.initData()
+  },
 
   onShow() {
-    // 重置分页状态，避免分页问题
-    this.setData({
-      page: 1,
-      pointsList: [],
-      hasMore: true,
-      loading: false
-    })
+    // 每次切换到points页面都调用status和history
+    this.refreshPointsData()
+  },
 
-    this.loadPointsStatus()     // 加载积分统计
-    this.loadPointsList(true)   // 加载积分明细（强制刷新）
-    this.loadExchangeItems()    // 加载兑换商品
-    this.loadPointsRules()      // 加载积分规则
+  // 初始化数据（首次加载）
+  async initData() {
+    try {
+      wx.showLoading({ title: '加载中...' })
+      
+      // 初始加载只需要积分状态和历史记录
+      await Promise.allSettled([
+        this.loadPointsStatus(),
+        this.loadPointsList(true)
+      ])
+      
+      this.setData({ 
+        dataLoaded: true,
+        lastLoadTime: Date.now()
+      })
+    } catch (error) {
+      console.error('初始化数据失败:', error)
+    } finally {
+      wx.hideLoading()
+    }
+  },
+
+  // 刷新积分相关数据（status + history）
+  async refreshPointsData() {
+    try {
+      this.setData({ loading: true })
+      
+      // 重置分页状态并清空历史数据
+      this.setData({
+        page: 1,
+        hasMore: true,
+        pointsList: [] // 清空历史数据，确保重新加载
+      })
+
+      // 并行加载积分状态和历史记录
+      await Promise.allSettled([
+        this.loadPointsStatus(),
+        this.loadPointsListInternal(true) // 使用内部方法避免loading冲突
+      ])
+      
+      this.setData({ 
+        lastLoadTime: Date.now(),
+        dataLoaded: true
+      })
+    } catch (error) {
+      console.error('刷新积分数据失败:', error)
+    } finally {
+      this.setData({ loading: false })
+    }
   },
 
   // 加载积分统计
@@ -74,26 +123,12 @@ Page({
           icon: 'none'
         })
       }
-    } finally {
-      wx.hideLoading()
     }
   },
 
-  // 加载积分明细
-  async loadPointsList(refresh = false) {
-    if (this.data.loading) return
-
+  // 内部加载积分明细方法，避免loading状态冲突
+  async loadPointsListInternal(refresh = false) {
     const { page, pageSize, pointsList, dateRangeIndex } = this.data
-
-    if (refresh) {
-      this.setData({
-        page: 1,
-        pointsList: [],
-        hasMore: true
-      })
-    }
-
-    this.setData({ loading: true })
 
     try {
       const params = {
@@ -183,9 +218,6 @@ Page({
       this.setData({
         hasMore: false
       })
-    } finally {
-      this.setData({ loading: false })
-      wx.stopPullDownRefresh()
     }
   },
 
@@ -251,10 +283,11 @@ Page({
                 icon: 'success'
               })
 
-              // 刷新积分余额和商品列表
-              this.loadPointsStatus()
-              this.loadExchangeItems()
-              this.loadPointsList(true)
+              // 兑换成功后只刷新积分状态
+              await this.loadPointsStatus()
+              
+              // 更新缓存时间
+              this.setData({ lastLoadTime: Date.now() })
             }
           } catch (error) {
             wx.showToast({
@@ -290,15 +323,40 @@ Page({
 
   // 下拉刷新
   onPullDownRefresh() {
-    this.loadPointsList(true)
-    this.loadExchangeItems()
-    this.loadPointsStatus()
+    // 下拉刷新时只刷新积分数据（status + history）
+    this.refreshPointsData().finally(() => {
+      wx.stopPullDownRefresh()
+    })
   },
 
   // 上拉加载更多
   onReachBottom() {
     if (this.data.hasMore) {
       this.loadPointsList()
+    }
+  },
+
+  // 加载积分明细（用于上拉加载更多）
+  async loadPointsList(refresh = false) {
+    if (this.data.loading) return
+
+    const { page, pageSize, pointsList } = this.data
+
+    if (refresh) {
+      this.setData({
+        page: 1,
+        pointsList: [],
+        hasMore: true
+      })
+    }
+
+    this.setData({ loading: true })
+
+    try {
+      await this.loadPointsListInternal(refresh)
+    } finally {
+      this.setData({ loading: false })
+      wx.stopPullDownRefresh()
     }
   }
 }) 

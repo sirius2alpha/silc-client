@@ -42,13 +42,13 @@ Page({
           [...this.data.notifications, ...newNotifications] : 
           newNotifications;
         
-        // 格式化通知数据
+        // 格式化通知数据 - 修复字段名匹配问题
         const formattedNotifications = notifications.map(item => ({
           id: item.id,
           title: item.title,
           content: item.content,
-          time: this.formatTime(item.created_at),
-          read: item.is_read,
+          time: this.formatTime(item.createdAt), // 修复：API返回的是createdAt
+          read: item.isRead || false, // 修复：API返回的是isRead，未读消息没有此字段
           type: item.type
         }));
         
@@ -79,7 +79,7 @@ Page({
       const response = await notificationApi.getUnreadCount();
       if (response && (response.code === 200 || response.success)) {
         this.setData({
-          unreadCount: response.data?.unread_count || 0
+          unreadCount: response.data?.unreadCount || 0
         });
       }
     } catch (error) {
@@ -93,6 +93,14 @@ Page({
   async markAsRead(e) {
     const { id } = e.currentTarget.dataset;
     const { notifications } = this.data;
+    
+    // 找到当前点击的消息
+    const currentNotification = notifications.find(item => item.id === id);
+    
+    // 如果消息已经是已读状态，直接返回，不执行任何操作
+    if (currentNotification && currentNotification.read) {
+      return;
+    }
     
     try {
       const response = await notificationApi.markAsRead(id);

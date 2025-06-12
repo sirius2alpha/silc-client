@@ -116,13 +116,28 @@ const fetchRecords = async () => {
     
     // 处理响应数据格式
     if (res.data) {
-      records.value = res.data.list || []
+      // 处理记录数据，添加缺失字段的默认值
+      const recordList = (res.data.list || []).map(record => ({
+        ...record,
+        // 如果没有isRedeemed字段，则根据redeemedAt是否存在来判断
+        isRedeemed: record.isRedeemed !== undefined ? record.isRedeemed : !!record.redeemedAt,
+        // 如果没有redeemedAt字段，设置为null
+        redeemedAt: record.redeemedAt || null
+      }))
+      
+      records.value = recordList
       total.value = res.data.pagination?.total || 0
       // 处理待核销统计数据
       pendingStats.value = res.data.pendingStats || []
     } else {
       // 兼容旧格式
-      records.value = res.list || res.items || []
+      const recordList = (res.list || res.items || []).map(record => ({
+        ...record,
+        isRedeemed: record.isRedeemed !== undefined ? record.isRedeemed : !!record.redeemedAt,
+        redeemedAt: record.redeemedAt || null
+      }))
+      
+      records.value = recordList
       total.value = res.pagination?.total || res.total || 0
       pendingStats.value = res.pendingStats || []
     }
@@ -174,6 +189,15 @@ const handleVerify = async () => {
 
 
 const formatDate = (date: string) => {
+  if (!date) return '-'
+  
+  // 如果时间字符串以Z结尾，说明是UTC格式，但实际上后端返回的已经是本地时间
+  // 所以去掉Z后缀，直接当作本地时间处理
+  if (date.endsWith('Z')) {
+    const localTimeStr = date.slice(0, -1)
+    return formatDateTime(localTimeStr)
+  }
+  
   return formatDateTime(date)
 }
 

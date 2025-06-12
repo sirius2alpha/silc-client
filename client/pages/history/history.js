@@ -17,6 +17,18 @@ Page({
     this.getHotQuestions()
   },
 
+  onShow() {
+    // 切换到history页面时刷新数据（和下拉刷新逻辑相同）
+    this.refreshHistoryData()
+  },
+
+  // 刷新历史记录数据
+  refreshHistoryData() {
+    // 同时刷新热门问题和历史记录
+    this.loadHistoryList(true)
+    this.getHotQuestions()
+  },
+
   // 加载历史记录列表
   async loadHistoryList(refresh = false) {
     if (this.data.loading) return
@@ -133,7 +145,8 @@ Page({
 
   // 下拉刷新
   onPullDownRefresh() {
-    this.loadHistoryList(true)
+    // 使用统一的刷新方法
+    this.refreshHistoryData()
   },
 
   // 上拉加载更多
@@ -154,10 +167,7 @@ Page({
       }
     } catch (error) {
       console.error('获取热门问题失败:', error)
-      wx.showToast({
-        title: '获取热门问题失败',
-        icon: 'none'
-      })
+      // 在下拉刷新时不显示错误提示，避免干扰用户体验
     }
   },
 }) 
