@@ -117,7 +117,7 @@ const fetchRecords = async () => {
     // 处理响应数据格式
     if (res.data) {
       // 处理记录数据，添加缺失字段的默认值
-      const recordList = (res.data.list || []).map(record => ({
+      const recordList = (res.data.list || []).map((record: any) => ({
         ...record,
         // 如果没有isRedeemed字段，则根据redeemedAt是否存在来判断
         isRedeemed: record.isRedeemed !== undefined ? record.isRedeemed : !!record.redeemedAt,
@@ -131,7 +131,7 @@ const fetchRecords = async () => {
       pendingStats.value = res.data.pendingStats || []
     } else {
       // 兼容旧格式
-      const recordList = (res.list || res.items || []).map(record => ({
+      const recordList = (res.list || res.items || []).map((record: any) => ({
         ...record,
         isRedeemed: record.isRedeemed !== undefined ? record.isRedeemed : !!record.redeemedAt,
         redeemedAt: record.redeemedAt || null
