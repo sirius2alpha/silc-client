@@ -33,6 +33,7 @@
       </view>
       <text class="section-subtitle">共{{historyList.length}}条记录</text>
     </view>
+    
     <scroll-view 
       class="history-scroll" 
       scroll-y="true" 
@@ -52,6 +53,7 @@
               <image 
                 class="robot-avatar" 
                 src="/assets/images/{{robotName}}.png"
+                mode="aspectFill"
               />
               <text class="robot-name" wx:if="{{robotName === 'xiwen'}}">悉文</text>
               <text class="robot-name" wx:elif="{{robotName === 'xihui'}}">悉荟</text>

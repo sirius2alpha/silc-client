@@ -1,4 +1,4 @@
-import { formatTime } from '../../utils/util'
+import { safeFormatTime } from '../../utils/util'
 import { sendMessage, getChatHistory } from '../../api/chat'
 import { getUserInfo } from '../../api/user'
 import request from '../../utils/request'
@@ -174,18 +174,18 @@ Page({
       const app = getApp()
       let robotId = null
 
-      // 尝试从页面数据获取
-      if (this.data.robot?.id) {
+      // 尝试从页面数据获取 - 兼容性写法
+      if (this.data.robot && this.data.robot.id) {
         robotId = this.data.robot.id
       }
-      // 尝试从全局数据获取
-      else if (app.globalData.selectedRobot?.id) {
+      // 尝试从全局数据获取 - 兼容性写法
+      else if (app.globalData.selectedRobot && app.globalData.selectedRobot.id) {
         robotId = app.globalData.selectedRobot.id
       }
       // 尝试从本地存储获取
       else {
         const storedRobot = wx.getStorageSync('selectedRobot')
-        if (storedRobot?.id) {
+        if (storedRobot && storedRobot.id) {
           robotId = storedRobot.id
         }
       }
@@ -206,13 +206,13 @@ Page({
       // 处理不同的响应格式
       let messages = []
 
-      if (res?.success && res.data) {
+      if (res && res.success && res.data) {
         // 处理messages字段
         if (res.data.messages && Array.isArray(res.data.messages)) {
           messages = res.data.messages
             .map(msg => ({
               ...msg,
-              formattedTime: formatTime(new Date(msg.createdAt || msg.time || new Date()))
+              formattedTime: safeFormatTime(msg.createdAt || msg.time)
             }))
         }
       }
@@ -294,7 +294,7 @@ Page({
           createdAt: res.data.userMessage.createdAt || new Date().toISOString(),
           type: 'user',
           isUser: true,
-          formattedTime: formatTime(new Date(res.data.userMessage.createdAt || new Date()))
+          formattedTime: safeFormatTime(res.data.userMessage.createdAt)
         }
         newMessages.push(userMessage)
       }
@@ -309,7 +309,7 @@ Page({
           robotAvatar: robot.avatar,
           type: 'robot',
           isUser: false,
-          formattedTime: formatTime(new Date(res.data.robotReply.createdAt || new Date()))
+          formattedTime: safeFormatTime(res.data.robotReply.createdAt)
         }
         newMessages.push(robotMessage)
       }
@@ -415,7 +415,7 @@ Page({
           ? messagesData.map(msg => ({
               ...msg,
               isUser: msg.type === 'user',
-              formattedTime: formatTime(new Date(msg.createdAt || msg.time || new Date()))
+              formattedTime: safeFormatTime(msg.createdAt || msg.time)
             }))
           : [];
         console.log('formattedMessages:', formattedMessages)

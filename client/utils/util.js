@@ -2,6 +2,67 @@
  * 通用工具函数
  */
 
+// iOS兼容的时间格式化函数
+const safeFormatTime = (timeString) => {
+  if (!timeString) {
+    console.warn('时间字符串为空')
+    return '时间未知'
+  }
+
+  try {
+    // 清理时间字符串
+    let cleanTimeString = timeString.trim()
+    
+    // 移除微秒部分（iOS不支持）
+    // 将 "2025-06-14 23:39:29.266605+08" 转换为 "2025-06-14 23:39:29"
+    cleanTimeString = cleanTimeString.replace(/\.[\d]+/g, '')
+    
+    // 移除时区信息（使用本地时间）
+    cleanTimeString = cleanTimeString.replace(/[+\-]\d{2}:?\d{0,2}$/g, '')
+    cleanTimeString = cleanTimeString.replace(/Z$/g, '')
+    
+    // 将T替换为空格
+    cleanTimeString = cleanTimeString.replace('T', ' ')
+    
+    // iOS兼容性关键：将连字符替换为斜杠
+    const iosCompatibleTimeString = cleanTimeString.replace(/-/g, '/')
+    
+    // 使用Date.parse进行解析
+    const timestamp = Date.parse(iosCompatibleTimeString)
+    
+    if (isNaN(timestamp)) {
+      console.error('时间解析失败:', iosCompatibleTimeString)
+      return fallbackParseTime(timeString)
+    }
+    
+    const date = new Date(timestamp)
+    return formatTime(date)
+    
+  } catch (error) {
+    console.error('时间格式化失败:', error, timeString)
+    return fallbackParseTime(timeString)
+  }
+}
+
+// 备用时间解析方案
+const fallbackParseTime = (timeString) => {
+  try {
+    // 手动解析：2025-06-14 23:39:29.266605+08
+    const match = timeString.match(/(\d{4})-(\d{2})-(\d{2})[\s|T](\d{2}):(\d{2}):(\d{2})/)
+    if (match) {
+      const [, year, month, day, hour, minute, second] = match
+      // 直接创建本地时间
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second))
+      return formatTime(date)
+    }
+    
+    return '时间解析失败'
+  } catch (error) {
+    console.error('备用时间解析也失败:', error)
+    return '时间未知'
+  }
+}
+
 // 格式化时间
 const formatTime = date => {
   // 确保传入的是有效的 Date 对象
@@ -207,6 +268,8 @@ const reLaunch = (url) => {
 
 module.exports = {
   formatTime,
+  safeFormatTime,
+  fallbackParseTime,
   formatUTCTime,
   formatNumber,
   debounce,

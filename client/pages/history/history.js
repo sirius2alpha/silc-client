@@ -1,5 +1,5 @@
 import { deleteHistory, getHotQuestions, getChatHistory } from '../../api/chat'
-import { formatTime } from '../../utils/util'
+import { safeFormatTime } from '../../utils/util'
 
 Page({
   data: {
@@ -49,21 +49,22 @@ Page({
       const app = getApp()
       let robotId = null
 
-      // 尝试从页面数据获取
-      if (this.data.robot?.id) {
+      // 尝试从页面数据获取 - 兼容性写法
+      if (this.data.robot && this.data.robot.id) {
         robotId = this.data.robot.id
       }
-      // 尝试从全局数据获取
-      else if (app.globalData.selectedRobot?.id) {
+      // 尝试从全局数据获取 - 兼容性写法
+      else if (app.globalData.selectedRobot && app.globalData.selectedRobot.id) {
         robotId = app.globalData.selectedRobot.id
       }
       // 尝试从本地存储获取
       else {
         const storedRobot = wx.getStorageSync('selectedRobot')
-        if (storedRobot?.id) {
+        if (storedRobot && storedRobot.id) {
           robotId = storedRobot.id
         }
       }
+      
       this.setData({ robotName: robotId })
       
       // 添加分页参数
@@ -72,22 +73,39 @@ Page({
         pageSize
       })
       
-      const formattedList = res.data?.chats?.map(item => {
+      // 确保数据存在且格式正确
+      if (!res || !res.data || !res.data.chats) {
+        console.error('API返回数据格式错误:', res)
+        throw new Error('服务器返回数据格式错误')
+      }
+
+      const formattedList = res.data.chats.map(item => {
+        if (!item) {
+          console.warn('发现空的聊天记录项')
+          return null
+        }
+
+        // 使用工具函数安全地格式化时间
+        const formattedTime = safeFormatTime(item.time)
+
         return {
           ...item,
-          time: formatTime(new Date(item.time))
-        };
-      }) || []
+          time: formattedTime
+        }
+      }).filter(item => item !== null) // 过滤掉null项
 
       // 修改hasMore的判断逻辑
       const hasMore = formattedList.length === pageSize
 
+      // 使用回调确保数据设置成功
       this.setData({
         historyList: refresh ? formattedList : [...historyList, ...formattedList],
         hasMore,
         page: refresh ? 2 : page + 1,
       })
+
     } catch (error) {
+      console.error('加载历史记录失败:', error)
       wx.showToast({
         title: error.message || '加载失败',
         icon: 'none'

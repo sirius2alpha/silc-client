@@ -105,11 +105,13 @@
   background: #fff;
   border-radius: 24rpx 24rpx 0 0;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+  min-height: 60vh;
 }
 
 .history-scroll {
   flex: 1;
-  height: 0;
+  min-height: 400rpx;
+  max-height: 80vh;
 }
 
 .history-list {
