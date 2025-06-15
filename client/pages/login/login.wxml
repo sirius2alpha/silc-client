@@ -10,7 +10,7 @@
       <input 
         class="input" 
         type="text" 
-        placeholder="请输入用户名/手机号" 
+        placeholder="请输入用户名/学号/手机号" 
         model:value="{{account}}"
       />
     </view>

@@ -1,8 +1,8 @@
 Page({
   data: {
     version: '1.0.0',
-    team: 'SILC Robot Team',
-    contact: 'willzuo@shu.edu.cn'
+    team: '上大悉商学工团队',
+    contact: 'zuowei@shu.edu.cn'
   },
 
   onLoad() {

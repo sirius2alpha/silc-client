@@ -14,6 +14,7 @@ Page({
     audioContext: null,
   },
 
+
   async onLoad(options) {
     console.log('robot-select页面加载');
     // 创建音频上下文
@@ -104,17 +105,28 @@ Page({
       console.log('获取机器人列表响应:', JSON.stringify(res));
 
       if (res && res.data && res.data.robots.length > 0) {
-        // 添加personality属性用于区分不同机器人的个性化展示
         const robotsWithPersonality = res.data.robots.map(robot => {
           const isMale = robot.id == 'xiwen';
+          let videoUrl = ''; // 定义一个变量来存储视频URL
+
+          // 根据机器人ID分配视频URL
+          if (robot.id === 'xiwen') {
+            videoUrl = 'https://silcai-1355235059.cos.ap-shanghai.myqcloud.com/xiwen_video.mp4'; // 替换为你的悉文视频路径
+          } else if (robot.id === 'xihui') {
+            videoUrl = 'https://silcai-1355235059.cos.ap-shanghai.myqcloud.com/xihui_video.mp4'; // 替换为你的悉荟视频路径
+          }
+          // 如果有更多机器人，可以在这里添加更多条件
+
           return {
             ...robot,
             personality: isMale ? 'male' : 'female',
-            greeting: isMale ? '你好，我是悉文，很高兴认识你！我可以为你解答专业问题。' : '嗨，我是悉荟，很开心能帮到你！有任何问题都可以问我哦~'
+            greeting: isMale ? '你好，我是悉文，很高兴认识你！我可以为你解答专业问题。' : '嗨，我是悉荟，很开心能帮到你！有任何问题都可以问我哦~',
+            videoUrl: videoUrl // 将视频URL添加到机器人对象中
           };
         });
 
         console.log('处理后的机器人列表:', JSON.stringify(robotsWithPersonality));
+        console.log('最终处理后的机器人列表:', JSON.stringify(robotsWithPersonality, null, 2));
 
         this.setData({
           robots: robotsWithPersonality,
@@ -133,7 +145,25 @@ Page({
       Toast.hideLoading();
     }
   },
-
+  
+  onVideoError(e) {
+    console.error('视频播放出错:', e.detail.errMsg, e.detail.errCode);
+    wx.showToast({
+      title: `视频错误: ${e.detail.errMsg}`,
+      code: `错误编码: ${e.detail.errCode}`,
+      icon: 'none',
+      duration: 3000
+    });
+  },
+  
+  onVideoPlay() {
+    console.log('视频开始播放！');
+    wx.showToast({
+      title: '视频开始播放！',
+      icon: 'success',
+      duration: 1500
+    });
+  },   
   // 处理轮播图变化
   onSwiperChange(e) {
     const { current } = e.detail;
@@ -269,6 +299,7 @@ Page({
         loading: false
       });
       Toast.hideLoading();
+
     }
   }
 }); 

@@ -12,7 +12,7 @@
       <block wx:for="{{hotQuestions}}" wx:key="question">
         <view class="hot-question-item">
           <view class="rank-badge">{{index + 1}}</view>
-          <view class="question-content">
+          <view class="question-info-wrapper">
             <view class="question-text">{{item.question}}</view>
             <view class="question-count">
               <text class="icon">👥</text>

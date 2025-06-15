@@ -41,7 +41,7 @@
 .title {
   font-size: 46rpx;
   font-weight: bold;
-  color: #2c3e50;
+  color: rgb(0, 58, 145);
   margin-bottom: 15rpx;
   display: block;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -76,7 +76,7 @@
 
 .robot-card {
   width: 540rpx;
-  height: 640rpx;
+  height: auto;
   padding: 35rpx;
   border-radius: 24rpx;
   box-shadow: 0 8rpx 25rpx rgba(0, 0, 0, 0.08);
@@ -164,7 +164,7 @@
 .robot-name {
   font-size: 36rpx;
   font-weight: bold;
-  color: #2c3e50;
+  color: rgb(0, 58, 145);
   margin-bottom: 18rpx;
 }
 
@@ -194,6 +194,34 @@
   line-height: 1.6;
   padding: 0 10rpx;
 }
+
+.video-wrapper {
+  width: 100%;
+  /* 高度 = 宽度 */
+  padding-top: 100%;
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto 25rpx;
+  border: none;
+  box-shadow: none;
+}
+
+.video-inner {
+  position: absolute;
+  top: -2%; left: -2%;
+  width: 104%; height: 104%;
+  object-fit: cover;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+}
+
+.video-inner::-webkit-media-controls,
+.video-inner::-webkit-media-controls-enclosure,
+.video-inner::-webkit-media-controls-panel { display: none !important; }
 
 .swiper-dots {
   display: flex;

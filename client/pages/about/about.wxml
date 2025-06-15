@@ -3,7 +3,7 @@
   <view class="about-card">
     <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
     <view class="title">上海大学悉尼工商学院</view>
-    <view class="subtitle">SILC Business School</view>
+    <view class="subtitle">SILC Business School, Shanghai University</view>
     
     <view class="info-section">
       <view class="info-item">

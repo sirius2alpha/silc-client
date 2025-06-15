@@ -79,18 +79,32 @@
   flex: 1;
 }
 
+.question-info-wrapper {
+  flex: 1; /* 让这个容器占据剩余空间 */
+  display: flex; /* 启用 Flexbox */
+  justify-content: space-between; /* 让问题和次数分别靠两端 */
+  align-items: center; /* 垂直居中对齐 */
+}
+
 .question-text {
   font-size: 28rpx;
   color: #333;
-  margin-bottom: 12rpx;
   line-height: 1.5;
+  white-space: nowrap; /* 不换行 */
+  overflow: hidden; /* 溢出部分隐藏 */
+  text-overflow: ellipsis; /* 溢出显示省略号 */
+  margin-right: 15rpx; /* 问题和次数之间的间距 */
+  flex-shrink: 1; /* 允许文本收缩 */
+  min-width: 0; /* 配合 ellipsis 生效 */
 }
 
 .question-count {
+  /* 确保这里有 flex-shrink: 0; */
   display: flex;
   align-items: center;
   font-size: 24rpx;
   color: #999;
+  flex-shrink: 0; /* 防止次数被挤压 */
 }
 
 .question-count .icon {

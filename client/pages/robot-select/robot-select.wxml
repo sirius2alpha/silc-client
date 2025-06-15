@@ -15,21 +15,24 @@
       current="{{currentRobotIndex}}"
     >
       <swiper-item wx:for="{{robots}}" wx:key="id" wx:for-item="robot" class="swiper-item">
-        <view class="robot-card {{currentRobotId === robot.id ? 'selected' : ''}}" style="position: relative; left: 2rpx; top: 14rpx; height: 660rpx; display: flex; box-sizing: border-box">
-          <view class="robot-bubble" style="position: relative; left: 1rpx; top: -13rpx">
-            <text class="robot-greeting">{{robot.personality === 'male' ? '你好，我是悉文，很高兴认识你！我可以为你解答专业问题。' : '嗨，我是悉荟，很开心能帮到你！有任何问题都可以问我哦~'}}</text>
-          </view>
-          <view class="avatar-container {{currentRobotId === robot.id ? 'pulse-animation' : ''}}">
-            <image class="robot-avatar" src="{{robot.avatar}}" mode="aspectFill" style="position: relative; left: 0rpx; top: 0rpx"></image>
+        <view class="robot-card {{currentRobotId === robot.id ? 'selected' : ''}}" style="position: relative; left: 2rpx; top: 14rpx; display: flex; box-sizing: border-box">
+          <view class="video-wrapper">
+            <video
+              class="video-inner"
+              src="{{robot.videoUrl}}"
+              autoplay="{{currentRobotId === robot.id}}"
+              loop
+              controls="{{false}}"
+              binderror="onVideoError"
+            ></video>
           </view>
           <view class="robot-info" style="position: relative; left: 2rpx; top: 23rpx">
             <text class="robot-name" style="position: relative; left: 0rpx; top: -18rpx; width: 79rpx; height: 44rpx; display: block; box-sizing: border-box">{{robot.name}}</text>
             <view class="robot-tags">
-              <text class="robot-tag">{{robot.personality === 'male' ? '专业' : '温柔'}}</text>
-              <text class="robot-tag">{{robot.personality === 'male' ? '稳重' : '贴心'}}</text>
-              <text class="robot-tag">{{robot.personality === 'male' ? '理性' : '感性'}}</text>
+              <text class="robot-tag">{{robot.personality === 'male' ? '更专业' : '更温柔'}}</text>
+              <text class="robot-tag">{{robot.personality === 'male' ? '更活泼' : '更贴心'}}</text>
+              <text class="robot-tag">{{robot.personality === 'male' ? '更理性' : '更感性'}}</text>
             </view>
-            <text class="robot-desc" style="position: relative; left: 0rpx; top: -16rpx">{{robot.description}}</text>
           </view>
         </view>
       </swiper-item>
