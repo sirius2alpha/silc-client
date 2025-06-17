@@ -1,7 +1,7 @@
 <view class="chat-container">
   <!-- 背景图和蒙版 -->
-  <view class="chat-background" wx:if="{{userInfo.bgpic}}">
-    <image class="background-image" src="{{userInfo.bgpic}}" mode="aspectFill" lazy-load="{{false}}"></image>
+  <view class="chat-background" wx:if="{{chatBackgroundImage}}">
+    <image class="background-image" src="{{chatBackgroundImage}}" mode="aspectFill" lazy-load="{{false}}" binderror="onBackgroundImageError"></image>
     <view class="background-mask"></view>
   </view>
   
@@ -26,12 +26,12 @@
               </view>
               <view class="message-time">{{item.formattedTime}}</view>
             </view>
-            <!-- 用户头像放在最右侧 -->
+            <!-- 🔧 优化：用户头像显示逻辑 -->
             <view class="avatar user-avatar" wx:if="{{userInfo.avatar}}">
-              <image src="{{userInfo.avatar}}" mode="aspectFill"></image>
+              <image src="{{userInfo.avatar}}" mode="aspectFill" binderror="onUserAvatarError"></image>
             </view>
             <view class="avatar user-avatar text-avatar" wx:else>
-              <text>我</text>
+              <text>{{userInfo.nickname || '我'}}</text>
             </view>
           </view>
           <!-- 机器人消息 -->

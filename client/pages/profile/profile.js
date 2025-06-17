@@ -16,6 +16,7 @@ Page({
     hasUserInfo: false,
     showNotificationBadge: false,
     loading: false,
+    showAvatar: true,
     
     // 添加数据缓存状态
     lastLoadTime: 0,
@@ -37,6 +38,12 @@ Page({
         title: '请先登录',
         icon: 'none'
       })
+    }
+    
+    // 添加用户信息更新事件监听
+    const app = getApp()
+    if (typeof app.addUserInfoUpdateListener === 'function') {
+      app.addUserInfoUpdateListener(this.onUserInfoUpdate.bind(this))
     }
   },
 
@@ -226,8 +233,133 @@ Page({
     const token = wx.getStorageSync('accessToken')
     if (!token) return
     
+    // 🔧 强化：每次onShow都强制检查并更新用户信息
+    this.checkAndUpdateUserInfo()
+    
+    // 🔧 新增：强制重新获取用户信息，确保头像等数据是最新的
+    this.forceRefreshUserInfo()
+    
+    // 🔧 确保从最新存储和全局数据中获取用户信息
+    const app = getApp()
+    const latestUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
+    if (latestUserInfo) {
+      this.setData({
+        username: latestUserInfo.username || '',
+        nickname: latestUserInfo.nickname || '',
+        avatarUrl: latestUserInfo.avatar || latestUserInfo.avatarUrl || '',
+        selectedRobot: latestUserInfo.selectedRobot || '',
+        points: latestUserInfo.points || 0
+      })
+    }
+    
     // 切换到profile页面时调用unread和status（getUserInfo包含status）
     this.refreshProfileData()
+  },
+
+  // 🔧 新增：强制刷新用户信息
+  async forceRefreshUserInfo() {
+    try {
+      console.log('profile页面强制刷新用户信息');
+      
+      // 从全局数据获取最新用户信息
+      const app = getApp();
+      const latestUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo');
+      
+      if (latestUserInfo) {
+        console.log('使用最新的全局用户信息更新profile页面');
+        this.setData({
+          username: latestUserInfo.username || '',
+          nickname: latestUserInfo.nickname || '',
+          avatarUrl: latestUserInfo.avatar || latestUserInfo.avatarUrl || '',
+          selectedRobot: latestUserInfo.selectedRobot || '',
+          points: latestUserInfo.points || 0
+        });
+      }
+      
+      // 🔧 同时从服务器获取最新数据（异步进行，不阻塞UI）
+      setTimeout(async () => {
+        try {
+          await this.getUserInfo();
+          console.log('profile页面从服务器获取最新用户信息成功');
+        } catch (error) {
+          console.warn('profile页面从服务器获取用户信息失败:', error);
+        }
+      }, 100);
+      
+    } catch (error) {
+      console.error('profile页面强制刷新用户信息失败:', error);
+    }
+  },
+
+  // 🔧 新增：检查并更新用户信息
+  checkAndUpdateUserInfo() {
+    const app = getApp()
+    const latestUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
+    
+    if (latestUserInfo) {
+      // 检查头像是否有更新
+      const currentAvatar = this.data.avatarUrl
+      const latestAvatar = latestUserInfo.avatar || latestUserInfo.avatarUrl
+      
+      // 检查昵称是否有更新
+      const currentNickname = this.data.nickname
+      const latestNickname = latestUserInfo.nickname
+      
+      if (latestAvatar !== currentAvatar || latestNickname !== currentNickname) {
+        console.log('检测到用户信息更新，刷新profile页面数据')
+        this.setData({
+          username: latestUserInfo.username || '',
+          nickname: latestNickname || '',
+          avatarUrl: latestAvatar || '',
+          selectedRobot: latestUserInfo.selectedRobot || '',
+          points: latestUserInfo.points || 0
+        })
+      }
+    }
+  },
+
+  // 🔧 新增：响应用户信息更新事件
+  onUserInfoUpdate(updatedUserInfo) {
+    console.log('profile页面收到用户信息更新事件:', updatedUserInfo)
+    
+    // 如果有强制刷新标记或显示数据，优先使用显示数据
+    let avatarToShow = updatedUserInfo.avatar || updatedUserInfo.avatarUrl || ''
+    
+    if (updatedUserInfo._forceRefresh && updatedUserInfo._displayAvatar) {
+      avatarToShow = updatedUserInfo._displayAvatar
+      console.log('profile页面使用强制刷新头像:', avatarToShow)
+    }
+    
+    const newData = {
+      username: updatedUserInfo.username || '',
+      nickname: updatedUserInfo.nickname || '',
+      avatarUrl: avatarToShow,
+      selectedRobot: updatedUserInfo.selectedRobot || '',
+      points: updatedUserInfo.points || 0
+    }
+    
+    console.log('profile页面更新数据:', newData)
+    this.setData(newData, () => {
+      console.log('profile页面setData完成')
+    })
+    
+    // 更新本地存储确保数据一致性（存储原始数据，不带时间戳）
+    const storageData = {
+      ...updatedUserInfo,
+      avatar: updatedUserInfo.avatar,
+      bgpic: updatedUserInfo.bgpic
+    }
+    // 移除内部标记
+    delete storageData._displayAvatar
+    delete storageData._displayBgpic
+    delete storageData._forceRefresh
+    delete storageData._timestamp
+    
+    wx.setStorageSync('userInfo', storageData)
+    const app = getApp()
+    if (app.globalData) {
+      app.globalData.userInfo = storageData
+    }
   },
 
   /**

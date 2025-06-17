@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: #f8f9fa;
   padding-bottom: 40rpx;
 }
 
@@ -13,50 +13,96 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid #e9ecef;
 }
 
 .title {
   font-size: 36rpx;
-  font-weight: bold;
+  font-weight: 500;
   color: #333;
 }
 
 .action {
   font-size: 30rpx;
-  color: #0077ff;
+  color: #007bff;
 }
 
 .action-group {
   display: flex;
   align-items: center;
-}
-
-.action-group .action {
-  margin-left: 30rpx;
+  gap: 30rpx;
 }
 
 .action-group .cancel {
-  color: #999;
+  color: #6c757d;
 }
 
 .action-group .save {
-  color: #0077ff;
-  font-weight: bold;
+  color: #007bff;
+  font-weight: 500;
 }
 
-.user-info {
+.profile-card {
   background-color: #fff;
   margin: 20rpx;
   border-radius: 12rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  border: 1rpx solid #e9ecef;
+}
+
+/* 非编辑模式样式 */
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding: 40rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #f1f3f4;
+}
+
+.main-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50rpx;
+  background-color: #f8f9fa;
+  border: 2rpx solid #e9ecef;
+  margin-right: 30rpx;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.nickname {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.username {
+  font-size: 28rpx;
+  color: #6c757d;
+}
+
+.info-section {
+  margin: 0;
+}
+
+.section-title {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #6c757d;
+  padding: 20rpx 40rpx 15rpx 40rpx;
+  background-color: #f8f9fa;
+  margin: 0;
 }
 
 .info-item {
   display: flex;
-  padding: 30rpx 40rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 25rpx 40rpx;
+  border-bottom: 1rpx solid #f1f3f4;
 }
 
 .info-item:last-child {
@@ -64,75 +110,223 @@
 }
 
 .label {
-  width: 160rpx;
+  display: flex;
+  align-items: center;
   font-size: 30rpx;
-  color: #666;
+  color: #495057;
+}
+
+.icon {
+  margin-right: 12rpx;
+  font-size: 28rpx;
 }
 
 .value {
-  flex: 1;
   font-size: 30rpx;
   color: #333;
-  text-align: right;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
 }
 
-.image-container {
+.bgpic-preview {
+  padding: 20rpx 40rpx 30rpx 40rpx;
+}
+
+.bgpic-large {
+  width: 100%;
+  height: 200rpx;
+  border-radius: 8rpx;
+  background-color: #f8f9fa;
+  border: 1rpx solid #e9ecef;
+}
+
+/* 编辑模式样式 */
+.edit-section {
+  margin: 0;
+  border-bottom: 1rpx solid #f1f3f4;
+}
+
+.edit-section:last-child {
+  border-bottom: none;
+}
+
+.avatar-section {
+  padding: 30rpx 40rpx;
+  text-align: center;
+}
+
+.avatar-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-button::after {
+  border: none;
+}
+
+.avatar-display {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+  background-color: #f8f9fa;
+  border: 3rpx solid #dee2e6;
+  transition: all 0.2s ease;
+}
+
+.avatar-button:active .avatar-display {
+  transform: scale(0.95);
+  border-color: #007bff;
+}
+
+.avatar-hint {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #6c757d;
+}
+
+
+
+.clear-avatar {
+  text-align: center;
+  padding: 0 40rpx 30rpx 40rpx;
+}
+
+.nickname-input-container {
+  padding: 30rpx 40rpx;
+}
+
+.nickname-input {
+  width: 100%;
+  padding: 20rpx 24rpx;
+  border: 1rpx solid #dee2e6;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+  background-color: #fff;
+  color: #333;
+}
+
+.nickname-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.input-placeholder {
+  color: #adb5bd;
+}
+
+.input-hint {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #6c757d;
+  text-align: center;
+}
+
+.bgpic-container {
+  position: relative;
+  margin: 30rpx 40rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  border: 1rpx solid #dee2e6;
+  min-height: 160rpx;
+}
+
+.bgpic-edit {
+  width: 100%;
+  height: 160rpx;
+}
+
+.no-bgpic-edit {
+  height: 160rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+
+.upload-icon {
+  font-size: 40rpx;
+  margin-bottom: 12rpx;
+  color: #adb5bd;
+}
+
+.upload-text {
+  font-size: 26rpx;
+  color: #6c757d;
+}
+
+.edit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.bgpic-container:active .edit-overlay {
+  opacity: 1;
+}
+
+.edit-text {
+  color: #fff;
+  font-size: 26rpx;
+}
+
+.clear-bgpic {
+  text-align: center;
+  padding: 0 40rpx 30rpx 40rpx;
+}
+
+.readonly-info {
+  padding: 25rpx 40rpx 30rpx 40rpx;
+  background-color: #f8f9fa;
+  margin: 30rpx 40rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #e9ecef;
+}
+
+.readonly-label {
+  font-size: 24rpx;
+  color: #6c757d;
+  margin-bottom: 8rpx;
+}
+
+.readonly-value {
+  font-size: 28rpx;
+  color: #495057;
 }
 
 .clear-btn {
-  margin-left: 20rpx;
-  padding: 8rpx 16rpx;
-  font-size: 24rpx;
-  color: #ff4444;
-  border: 1rpx solid #ff4444;
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
   border-radius: 6rpx;
-  background-color: transparent;
+  padding: 12rpx 24rpx;
+  font-size: 24rpx;
 }
 
-.avatar {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  background-color: #f0f0f0;
+.clear-btn:active {
+  background-color: #c82333;
 }
 
-/* 背景图样式 */
-.bgpic {
-  width: 200rpx;
-  height: 120rpx;
-  border-radius: 8rpx;
-  background-color: #f0f0f0;
-  object-fit: cover;
+.clear-btn::after {
+  border: none;
 }
 
-.no-bgpic {
-  width: 200rpx;
-  height: 120rpx;
-  border-radius: 8rpx;
-  background-color: #f5f5f5;
+/* 加载状态 */
+.loading-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
-  color: #999;
-  border: 2rpx dashed #ddd;
-}
-
-.edit-hint {
-  font-size: 24rpx;
-  color: #0077ff;
-  margin-left: 20rpx;
-}
-
-.input {
-  flex: 1;
-  text-align: right;
-  font-size: 30rpx;
-  color: #333;
+  color: #adb5bd;
+  padding: 40rpx;
 } 

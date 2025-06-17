@@ -7,36 +7,22 @@
 
   <view class="form-box">
     <view class="input-group">
-      <input 
-        class="input" 
-        type="text" 
-        placeholder="请输入用户名/学号/手机号" 
-        model:value="{{account}}"
-      />
+      <input class="input" type="text" placeholder="请输入用户名/学号/手机号" model:value="{{account}}" />
     </view>
 
     <view class="input-group">
-      <input 
-        class="input" 
-        type="password" 
-        
-        placeholder="请输入密码" 
-        model:value="{{password}}"
-      />
+      <input class="input" type="password" placeholder="请输入密码" model:value="{{password}}" />
     </view>
 
-    <button 
-      class="submit-btn" 
-      loading="{{loading}}"
-      bindtap="handleLogin"
-    >
+    <button class="submit-btn" loading="{{loading}}" bindtap="handleLogin">
       登录
     </button>
 
-    <view class="action-links">
+    <!-- 这里暂时没有备案号sms资质,暂时隐藏入口 -->
+    <!-- <view class="action-links">
       <text bindtap="navigateToRegister">注册账号</text>
       <text bindtap="navigateToReset">忘记密码</text>
-    </view>
+    </view> -->
 
     <view class="divider">
       <view class="line"></view>
@@ -44,13 +30,9 @@
       <view class="line"></view>
     </view>
 
-    <button 
-      class="wechat-btn" 
-      open-type="getUserInfo" 
-      bindgetuserinfo="handleWechatLogin"
-    >
+    <button class="wechat-btn" open-type="getUserInfo" bindgetuserinfo="handleWechatLogin">
       <image class="wechat-icon" src="/assets/images/wechat.png" mode="aspectFit"></image>
       微信一键登录
     </button>
   </view>
-</view> 
+</view>

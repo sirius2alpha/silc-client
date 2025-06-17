@@ -1,7 +1,7 @@
 <view class="container">
   <view class="header">
     <view wx:if="{{!editMode}}" class="title">个人信息</view>
-    <view wx:else class="title">编辑个人信息</view>
+    <view wx:else class="title">编辑信息</view>
     <view wx:if="{{!editMode}}" class="action" bindtap="toggleEditMode">编辑</view>
     <view wx:else class="action-group">
       <view class="action cancel" bindtap="toggleEditMode">取消</view>
@@ -9,68 +9,90 @@
     </view>
   </view>
 
-  <view class="user-info">
+  <view class="profile-card">
     <!-- 非编辑模式 -->
     <block wx:if="{{!editMode}}">
-      <view class="info-item">
-        <view class="label">头像</view>
-        <view class="value">
-          <image class="avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}"></image>
+      <view class="profile-header">
+        <image class="main-avatar" src="{{userInfo.avatar || '/assets/images/default-avatar.png'}}"></image>
+        <view class="profile-info">
+          <view class="nickname">{{userInfo.nickname || userInfo.username || '未设置昵称'}}</view>
+          <view class="username">{{userInfo.username || ''}}</view>
         </view>
       </view>
-      <view class="info-item">
-        <view class="label">聊天背景</view>
-        <view class="value">
-          <image class="bgpic" src="{{userInfo.bgpic || '/assets/images/default-bg.png'}}" wx:if="{{userInfo.bgpic}}" mode="aspectFill" lazy-load="{{false}}"></image>
-          <view class="no-bgpic" wx:else>未设置背景图</view>
+
+      <view class="info-section">
+        <view class="info-item">
+          <view class="label">昵称</view>
+          <view class="value">{{userInfo.nickname || userInfo.username || '未设置'}}</view>
+        </view>
+        <view class="info-item">
+          <view class="label">账号</view>
+          <view class="value">{{userInfo.username || ''}}</view>
         </view>
       </view>
-      <view class="info-item">
-        <view class="label">昵称</view>
-        <view class="value">{{userInfo.nickname || userInfo.username || '未设置'}}</view>
-      </view>
-      <view class="info-item">
-        <view class="label">账号</view>
-        <view class="value">{{userInfo.username || ''}}</view>
+
+      <view class="info-section" wx:if="{{userInfo.bgpic}}">
+        <view class="section-title">聊天背景</view>
+        <view class="bgpic-preview">
+          <image class="bgpic-large" src="{{userInfo.bgpic}}" mode="aspectFill"></image>
+        </view>
       </view>
     </block>
 
     <!-- 编辑模式 -->
     <block wx:else>
-      <view class="info-item">
-        <view class="label">头像</view>
-        <view class="value">
-          <view class="image-container" bindtap="chooseAvatar">
-            <image class="avatar" src="{{formData.avatar || '/assets/images/default-avatar.png'}}"></image>
-            <view class="edit-hint">点击修改</view>
-          </view>
-          <view class="clear-btn" bindtap="clearAvatar" wx:if="{{formData.avatar}}">清空</view>
+      <view class="edit-section">
+        <view class="section-title">头像设置</view>
+        <view class="avatar-section">
+          <button class="avatar-button" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+            <image class="avatar-display" src="{{formData.avatar || '/assets/images/default-avatar.png'}}"></image>
+            <view class="avatar-hint">点击更换头像</view>
+          </button>
+        </view>
+        
+        <view class="clear-avatar" wx:if="{{formData.avatar}}">
+          <button class="clear-btn" bindtap="clearAvatar">清空头像</button>
         </view>
       </view>
-      <view class="info-item">
-        <view class="label">聊天背景</view>
-        <view class="value">
-          <view class="image-container" bindtap="chooseBgpic">
-            <image class="bgpic" src="{{formData.bgpic || '/assets/images/default-bg.png'}}" wx:if="{{formData.bgpic}}" mode="aspectFill" lazy-load="{{false}}"></image>
-            <view class="no-bgpic" wx:else>点击选择背景图</view>
-            <view class="edit-hint">点击修改</view>
-          </view>
-          <view class="clear-btn" bindtap="clearBgpic" wx:if="{{formData.bgpic}}">清空</view>
+
+      <view class="edit-section">
+        <view class="section-title">昵称设置</view>
+        <view class="nickname-input-container">
+          <input 
+            class="nickname-input" 
+            type="nickname"
+            value="{{formData.nickname}}" 
+            placeholder="请输入昵称" 
+            bindinput="onInput" 
+            data-field="nickname"
+            placeholder-class="input-placeholder"
+          />
+          <view class="input-hint">输入时键盘上方会显示微信昵称建议</view>
         </view>
       </view>
-      <view class="info-item">
-        <view class="label">昵称</view>
-        <input 
-          class="input" 
-          value="{{formData.nickname}}" 
-          placeholder="请输入昵称" 
-          bindinput="onInput" 
-          data-field="nickname"
-        />
+
+      <view class="edit-section">
+        <view class="section-title">聊天背景</view>
+        <view class="bgpic-container" bindtap="chooseBgpic">
+          <image class="bgpic-edit" src="{{formData.bgpic}}" wx:if="{{formData.bgpic}}" mode="aspectFill"></image>
+          <view class="no-bgpic-edit" wx:else>
+            <view class="upload-text">点击选择背景图</view>
+          </view>
+          <view class="edit-overlay">
+            <view class="edit-text">点击修改</view>
+          </view>
+        </view>
+        <view class="clear-bgpic" wx:if="{{formData.bgpic}}">
+          <button class="clear-btn" bindtap="clearBgpic">清空背景图</button>
+        </view>
       </view>
-      <view class="info-item">
-        <view class="label">账号</view>
-        <view class="value">{{userInfo.username || ''}} (不可修改)</view>
+
+      <view class="edit-section">
+        <view class="section-title">账号信息</view>
+        <view class="readonly-info">
+          <view class="readonly-label">用户名</view>
+          <view class="readonly-value">{{userInfo.username || ''}} (不可修改)</view>
+        </view>
       </view>
     </block>
   </view>

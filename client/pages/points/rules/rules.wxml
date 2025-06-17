@@ -7,10 +7,24 @@
   </view>
   
   <view class="rules-list">
-    <view class="rules-item" wx:for="{{rules}}" wx:key="id">
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <view class="loading-item" wx:for="{{[1,2,3]}}" wx:key="*this">
+        <view class="skeleton-header">
+          <view class="skeleton skeleton-tag"></view>
+          <view class="skeleton skeleton-title"></view>
+          <view class="skeleton skeleton-limit"></view>
+        </view>
+        <view class="skeleton skeleton-desc"></view>
+      </view>
+    </view>
+    
+    <!-- 规则列表 -->
+    <view class="rules-item" wx:for="{{rules}}" wx:key="id" wx:if="{{!loading}}">
       <view class="rule-header">
         <view class="rule-tag">+{{item.points}}</view>
         <text class="rule-title">{{item.title}}</text>
+        <view class="daily-limit" wx:if="{{item.dailyLimit}}">每日{{item.dailyLimit}}次</view>
       </view>
       <text class="rule-desc">{{item.description}}</text>
     </view>

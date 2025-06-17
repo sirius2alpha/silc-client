@@ -1,9 +1,8 @@
 import { safeFormatTime } from '../../utils/util'
 import { sendMessage, getChatHistory } from '../../api/chat'
-import { getUserInfo } from '../../api/user'
-import request from '../../utils/request'
+import { createPage, withUserInfo, withRobot } from '../../utils/page-helper'
 
-// 创建事件中心（如果不存在）
+// 创建事件中心
 if (!wx.eventCenter) {
   wx.eventCenter = {
     events: {},
@@ -29,186 +28,368 @@ if (!wx.eventCenter) {
   }
 }
 
-Page({
+const chatPage = createPage(withUserInfo(withRobot({
   data: {
     messages: [],
     inputValue: '',
-    loading: false,
     sending: false,
     inputFocus: false,
     keyboardHeight: 0,
     robot: null,
-    robotInfo: null,  // wxml中使用
+    robotInfo: null,
     userInfo: null,
     isPulling: false,
     pullDistance: 0,
     lastScrollTop: 0,
-    loadingHistory: false,  // 添加加载历史消息的状态
+    loadingHistory: false,
+    chatBackgroundImage: '',
+    preloadedBackgroundImage: '',
   },
 
   async onLoad() {
-    // 检查登录状态
-    const token = wx.getStorageSync('accessToken')
-    if (!token) {
-      console.log('在chat页面未检测到token，跳转到登录页')
-      wx.reLaunch({
-        url: '/pages/login/login'
-      })
-      return
-    }
+    if (!this.checkLoginStatus()) return
 
-    // 从全局数据或者本地数据加载userid nickname seletedRobot
     const app = getApp()
-    let userId = app.globalData.userInfo?.id || wx.getStorageSync('userId')
-    let nickname = app.globalData.userInfo?.nickname || wx.getStorageSync('userInfo')?.nickname || '我'
-    let RobotInfo = app.globalData.selectedRobot || wx.getStorageSync('selectedRobot')
+    await this.initializePageData(app)
+    this.loadHistory()
+    this.initializeUserBackground()
+    
+    // 添加用户信息更新事件监听
+    if (typeof app.addUserInfoUpdateListener === 'function') {
+      app.addUserInfoUpdateListener(this.onUserInfoUpdate.bind(this))
+    }
+  },
 
-    // 如果这三个数据缺失 则调用loadUserInfo方法获取
-    if (!userId || !nickname || !RobotInfo) {
-      console.log('缺少用户信息或机器人信息，尝试加载用户信息')
+  onShow() {
+    if (!this.checkLoginStatus()) return
+    
+    // 强制更新用户信息，确保头像和背景图是最新的
+    this.forceUpdateUserInfo()
+    this.checkAndUpdateRobot()
+    
+    // 🔧 确保从最新存储和全局数据中获取用户信息
+    const app = getApp()
+    const latestUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
+    if (latestUserInfo) {
+      const currentUserInfo = this.data.userInfo || {}
+      const hasAvatarChange = currentUserInfo.avatar !== latestUserInfo.avatar
+      const hasBgpicChange = currentUserInfo.bgpic !== latestUserInfo.bgpic
+      
+      this.setData({ userInfo: latestUserInfo })
+      
+      // 如果头像或背景图有变化，立即更新显示
+      if (hasAvatarChange) {
+        setTimeout(() => {
+          this.setData({ messages: [...this.data.messages] })
+        }, 100)
+      }
+      
+      if (hasBgpicChange) {
+        this.preloadAndUpdateBackground(latestUserInfo.bgpic)
+      }
+    }
+  },
+
+  /**
+   * 初始化页面数据
+   */
+  async initializePageData(app) {
+    let userId = app.globalData.userInfo?.id || wx.getStorageSync('userId') || wx.getStorageSync('userInfo')?.id
+    let nickname = app.globalData.userInfo?.nickname || wx.getStorageSync('userInfo')?.nickname || '我'
+    let robotInfo = this.getSelectedRobot()
+
+    // 如果缺少必要数据，则加载用户信息
+    if (!userId || !nickname || !robotInfo || !robotInfo.id) {
       await this.loadUserInfo()
-      // 重新获取全局数据
       userId = app.globalData.userInfo?.id || wx.getStorageSync('userId')
       nickname = app.globalData.userInfo?.nickname || wx.getStorageSync('userInfo')?.nickname || '我'
-      RobotInfo = app.globalData.selectedRobot || wx.getStorageSync('selectedRobot')
+      robotInfo = this.getSelectedRobot()
+      
+      if (!robotInfo || !robotInfo.id) {
+        const userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
+        if (userInfo?.selectedRobot) {
+          robotInfo = app.findRobotInfo(userInfo.selectedRobot)
+          if (robotInfo) {
+            this.updateSelectedRobot(robotInfo)
+          }
+        }
+      }
     } else {
-      console.log('已加载用户信息:', { userId, username: nickname, RobotInfo })
-      // 仍然调用loadUserInfo获取最新的用户信息（包括bgpic）
       await this.loadUserInfo()
-      // 更新全局数据
       app.globalData.userId = userId
-      app.globalData.selectedRobot = RobotInfo
+      this.updateSelectedRobot(robotInfo)
       wx.setStorageSync('userId', userId)
-      wx.setStorageSync('selectedRobot', RobotInfo)
     }
 
-    // 设置页面数据，userInfo会在loadUserInfo中更新
-    this.setData({
-      robot: RobotInfo
-    })
+    this.setData({ robot: robotInfo })
 
-    if (!RobotInfo) {
-      console.log('无法获取机器人信息，提示用户并跳转')
+    if (!robotInfo || !robotInfo.id) {
       wx.showModal({
         title: '提示',
         content: '请先选择AI助手',
         showCancel: false,
         success: () => {
-          wx.reLaunch({
-            url: '/pages/robot-select/robot-select'
-          })
+          wx.reLaunch({ url: '/pages/robot-select/robot-select' })
         }
       })
       return
     }
-
-    console.log('使用机器人:', RobotInfo)
-    this.loadHistory()
-    
-    // 初始化背景图
-    this.updateUserBackground()
   },
 
-  onShow() {
-    // 检查登录状态
-    const token = wx.getStorageSync('accessToken')
-    if (!token) {
-      console.log('未检测到token，跳转到登录页')
-      wx.reLaunch({
-        url: '/pages/login/login'
-      })
-      return
-    }
-
-    // 检查并更新用户背景图
-    this.updateUserBackground()
-
-    // 检查机器人选择状态
-    const app = getApp()
-    let selectedRobot = app.globalData.selectedRobot || wx.getStorageSync('selectedRobot')
+  /**
+   * 检查并更新机器人选择状态
+   */
+  checkAndUpdateRobot() {
+    let selectedRobot = this.getSelectedRobot()
 
     if (!selectedRobot) {
-      // 尝试从用户信息中获取已选择的机器人
       const userInfo = wx.getStorageSync('userInfo')
       if (userInfo?.selectedRobot) {
-        // 使用app.js中的方法获取机器人信息
+        const app = getApp()
         selectedRobot = app.findRobotInfo(userInfo.selectedRobot)
-
         if (selectedRobot) {
-          app.globalData.selectedRobot = selectedRobot
-          wx.setStorageSync('selectedRobot', selectedRobot)
+          this.updateSelectedRobot(selectedRobot)
         }
       }
     }
 
     if (!selectedRobot) {
-      console.log('未选择机器人，跳转到选择页面')
       wx.showModal({
         title: '提示',
         content: '请先选择AI助手',
         showCancel: false,
         success: () => {
-          wx.reLaunch({
-            url: '/pages/robot-select/robot-select'
-          })
+          wx.reLaunch({ url: '/pages/robot-select/robot-select' })
         }
       })
       return
     }
 
-    // 如果当前没有机器人数据，但全局有，则更新
     if (!this.data.robot && selectedRobot) {
-      console.log('更新页面机器人数据')
       this.setData({ robot: selectedRobot }, () => {
         this.loadHistory()
       })
     }
   },
 
+  /**
+   * 强制更新用户信息
+   */
+  forceUpdateUserInfo() {
+    const app = getApp()
+    const latestUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
+    
+    if (latestUserInfo) {
+      const currentUserInfo = this.data.userInfo || {}
+      const hasAvatarChange = currentUserInfo.avatar !== latestUserInfo.avatar
+      const hasBgpicChange = currentUserInfo.bgpic !== latestUserInfo.bgpic
+      
+      this.setData({ userInfo: latestUserInfo })
+      
+      // 头像变化时强制刷新消息列表
+      if (hasAvatarChange) {
+        setTimeout(() => {
+          this.setData({ messages: [...this.data.messages] })
+        }, 100)
+      }
+      
+      // 背景图变化时预加载更新
+      if (hasBgpicChange || !this.data.chatBackgroundImage) {
+        this.preloadAndUpdateBackground(latestUserInfo.bgpic)
+      }
+    }
+  },
+
+  /**
+   * 响应用户信息更新事件
+   */
+  onUserInfoUpdate(updatedUserInfo) {
+    console.log('chat页面收到用户信息更新事件:', updatedUserInfo)
+    
+    // 准备显示用的用户信息（优先使用强制刷新的显示数据）
+    let displayUserInfo = { ...updatedUserInfo }
+    
+    if (updatedUserInfo._forceRefresh) {
+      console.log('chat页面检测到强制刷新标记')
+      if (updatedUserInfo._displayAvatar) {
+        displayUserInfo.avatar = updatedUserInfo._displayAvatar
+      }
+      if (updatedUserInfo._displayBgpic) {
+        displayUserInfo.bgpic = updatedUserInfo._displayBgpic
+      }
+    }
+    
+    const currentUserInfo = this.data.userInfo || {}
+    const hasAvatarChange = currentUserInfo.avatar !== displayUserInfo.avatar
+    const hasBgpicChange = currentUserInfo.bgpic !== displayUserInfo.bgpic
+    
+    // 更新用户信息和背景图
+    this.setData({ 
+      userInfo: displayUserInfo,
+      chatBackgroundImage: displayUserInfo.bgpic || '',
+      preloadedBackgroundImage: displayUserInfo.bgpic || ''
+    }, () => {
+      console.log('chat页面userInfo更新完成')
+    })
+    
+    // 更新本地存储确保数据一致性（存储原始数据，不带时间戳）
+    const storageData = {
+      ...updatedUserInfo,
+      avatar: updatedUserInfo.avatar,
+      bgpic: updatedUserInfo.bgpic
+    }
+    // 移除内部标记
+    delete storageData._displayAvatar
+    delete storageData._displayBgpic
+    delete storageData._forceRefresh
+    delete storageData._timestamp
+    
+    wx.setStorageSync('userInfo', storageData)
+    const app = getApp()
+    if (app.globalData) {
+      app.globalData.userInfo = storageData
+    }
+    
+    // 头像或背景图变化时强制刷新消息列表显示
+    if (hasAvatarChange || hasBgpicChange) {
+      console.log('检测到图片变化，刷新消息列表和背景')
+      setTimeout(() => {
+        const currentMessages = this.data.messages || []
+        this.setData({ 
+          messages: [...currentMessages] 
+        }, () => {
+          console.log('chat页面消息列表刷新完成')
+        })
+      }, 100)
+    }
+  },
+
+  /**
+   * 响应用户信息更新事件
+   */
+  onUserInfoUpdate(updatedUserInfo) {
+    console.log('chat页面收到用户信息更新事件:', updatedUserInfo)
+    
+    // 检查是否有强制更新标记
+    const isForceUpdate = updatedUserInfo._forceUpdate
+    
+    if (!isForceUpdate) {
+      const currentUserInfo = this.data.userInfo || {}
+      
+      // 检查是否真的需要更新（只有在非强制更新时才检查）
+      const needAvatarUpdate = currentUserInfo.avatar !== updatedUserInfo.avatar
+      const needBgpicUpdate = currentUserInfo.bgpic !== updatedUserInfo.bgpic
+      
+      if (!needAvatarUpdate && !needBgpicUpdate) {
+        console.log('chat页面: 图片无变化，跳过更新')
+        return
+      }
+    }
+    
+    console.log('chat页面: 开始更新图片', isForceUpdate ? '(强制更新)' : '(检测到变化)')
+    
+    // 生成带缓存破解参数的URL
+    const timestamp = updatedUserInfo._updateTime || Date.now()
+    const processedUserInfo = {
+      ...updatedUserInfo,
+      avatar: updatedUserInfo.avatar ? `${updatedUserInfo.avatar.split('?')[0]}?_t=${timestamp}` : '',
+      bgpic: updatedUserInfo.bgpic ? `${updatedUserInfo.bgpic.split('?')[0]}?_t=${timestamp}` : ''
+    }
+    
+    // 如果是强制更新，才预加载
+    if (isForceUpdate) {
+      Promise.all([
+        this.preloadImage(processedUserInfo.avatar),
+        this.preloadImage(processedUserInfo.bgpic)
+      ]).catch(error => {
+        console.log('图片预加载失败，继续更新:', error)
+      }).finally(() => {
+        this.updateChatDisplay(processedUserInfo, timestamp)
+      })
+    } else {
+      this.updateChatDisplay(processedUserInfo, timestamp)
+    }
+  },
+
+  /**
+   * 更新聊天页面显示
+   */
+  updateChatDisplay(processedUserInfo, timestamp) {
+    // 预加载完成后，直接更新数据
+    this.setData({
+      userInfo: processedUserInfo,
+      chatBackgroundImage: processedUserInfo.bgpic,
+      preloadedBackgroundImage: processedUserInfo.bgpic,
+      imageUpdateKey: timestamp
+    }, () => {
+      console.log('✅ chat页面图片更新完成')
+      
+      // 通过更新imageUpdateKey来触发消息列表中头像的重新渲染
+      const currentMessages = this.data.messages || []
+      this.setData({ 
+        messages: [...currentMessages] // 触发重新渲染
+      }, () => {
+        console.log('✅ chat页面消息头像更新完成')
+      })
+    })
+    
+    // 更新本地存储确保数据一致性
+    wx.setStorageSync('userInfo', processedUserInfo)
+    const app = getApp()
+    if (app.globalData) {
+      app.globalData.userInfo = processedUserInfo
+    }
+  },
+
+  /**
+   * 预加载并更新背景图
+   */
+  preloadAndUpdateBackground(bgpicUrl) {
+    if (!bgpicUrl) {
+      this.setData({
+        chatBackgroundImage: '',
+        preloadedBackgroundImage: ''
+      })
+      return
+    }
+    
+    // 使用图片组件的预加载机制
+    wx.getImageInfo({
+      src: bgpicUrl,
+      success: () => {
+        this.setData({
+          chatBackgroundImage: bgpicUrl,
+          preloadedBackgroundImage: bgpicUrl
+        })
+      },
+      fail: () => {
+        // 预加载失败，直接设置背景图
+        this.setData({ chatBackgroundImage: bgpicUrl })
+      }
+    })
+  },
+
+  /**
+   * 加载聊天历史
+   */
   async loadHistory() {
     if (this.data.loading) return
 
     this.setData({ loading: true })
 
     try {
-      // 获取机器人ID，从多个可能的来源获取
-      const app = getApp()
-      let robotId = null
-
-      // 尝试从页面数据获取 - 兼容性写法
-      if (this.data.robot && this.data.robot.id) {
-        robotId = this.data.robot.id
-      }
-      // 尝试从全局数据获取 - 兼容性写法
-      else if (app.globalData.selectedRobot && app.globalData.selectedRobot.id) {
-        robotId = app.globalData.selectedRobot.id
-      }
-      // 尝试从本地存储获取
-      else {
-        const storedRobot = wx.getStorageSync('selectedRobot')
-        if (storedRobot && storedRobot.id) {
-          robotId = storedRobot.id
-        }
-      }
-
-      console.log('加载历史消息, 机器人ID:', robotId)
-
+      const robotId = this.getRobotId()
       if (!robotId) {
         throw new Error('未选择机器人')
       }
 
-      // 使用API获取聊天历史
       const res = await getChatHistory(robotId, {
         page: 1,
         pageSize: 20
       })
-      console.log('获取聊天历史响应:', res)
 
-      // 处理不同的响应格式
       let messages = []
-
       if (res && res.success && res.data) {
-        // 处理messages字段
         if (res.data.messages && Array.isArray(res.data.messages)) {
           messages = res.data.messages
             .map(msg => ({
@@ -220,8 +401,6 @@ Page({
 
       messages.reverse()
 
-      console.log(`加载了 ${messages.length} 条历史消息`)
-
       this.setData({
         messages: messages,
         loading: false
@@ -230,11 +409,7 @@ Page({
       })
 
     } catch (error) {
-      console.error('加载历史消息失败:', error)
-      wx.showToast({
-        title: error.message || '加载历史消息失败',
-        icon: 'none'
-      })
+      this.handleError(error, '加载历史消息失败')
       this.setData({
         loading: false,
         messages: []
@@ -242,43 +417,58 @@ Page({
     }
   },
 
-  // 输入框事件
-  onInput(e) {
-    this.setData({
-      inputValue: e.detail.value
-    })
+  /**
+   * 获取机器人ID
+   */
+  getRobotId() {
+    const app = getApp()
+    
+    if (this.data.robot && this.data.robot.id) {
+      return this.data.robot.id
+    }
+    
+    if (app.globalData.selectedRobot && app.globalData.selectedRobot.id) {
+      return app.globalData.selectedRobot.id
+    }
+    
+    const storedRobot = wx.getStorageSync('selectedRobot')
+    if (storedRobot && storedRobot.id) {
+      return storedRobot.id
+    }
+    
+    return null
   },
 
-  // 发送消息
+  /**
+   * 发送消息
+   */
   async handleSend() {
     if (this.data.sending) return
 
     const { inputValue, robot } = this.data
     if (!inputValue.trim()) return
 
-    if (!robot) {
-      wx.showToast({
-        title: '请先选择机器人',
-        icon: 'none'
-      })
+    if (!robot || !robot.id) {
+      const validRobot = this.restoreRobotData()
+      if (!validRobot) {
+        wx.showToast({
+          title: '请先选择机器人',
+          icon: 'none'
+        })
+        wx.navigateTo({ url: '/pages/robot-select/robot-select' })
+        return
+      }
+      setTimeout(() => this.handleSend(), 100)
       return
     }
 
     this.setData({ sending: true })
 
     try {
-      console.log('开始发送消息:', {
-        content: inputValue,
-        robot_id: robot.id,
-      })
-
-      // 发送消息到服务器
       const res = await sendMessage({
         content: inputValue,
         robot_id: robot.id,
       })
-
-      console.log('发送消息响应:', res)
 
       if (!res?.success || !res.data) {
         throw new Error(res.message || res.error || '发送失败')
@@ -315,7 +505,6 @@ Page({
         newMessages.push(robotMessage)
       }
 
-      // 更新消息列表
       this.setData({
         messages: newMessages,
         inputValue: '',
@@ -325,87 +514,60 @@ Page({
       })
 
     } catch (error) {
-      console.error('发送消息错误', error)
-      wx.showToast({
-        title: error.message || '发送失败',
-        icon: 'none'
-      })
+      this.handleError(error, '发送失败')
       this.setData({ sending: false })
     }
   },
 
+  /**
+   * 恢复机器人数据
+   */
+  restoreRobotData() {
+    const app = getApp()
+    const globalRobot = app.globalData.selectedRobot
+    const storedRobot = wx.getStorageSync('selectedRobot')
+    
+    let validRobot = null
+    if (globalRobot && globalRobot.id) {
+      validRobot = globalRobot
+    } else if (storedRobot && storedRobot.id) {
+      validRobot = storedRobot
+    } else {
+      const userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
+      if (userInfo?.selectedRobot) {
+        validRobot = app.findRobotInfo(userInfo.selectedRobot)
+      }
+    }
+    
+    if (validRobot && validRobot.id) {
+      this.setData({ robot: validRobot })
+      return validRobot
+    }
+    
+    return null
+  },
+
+  /**
+   * 滚动到底部
+   */
   scrollToBottom() {
     if (this.data.messages?.length > 0) {
       const lastMessage = this.data.messages[this.data.messages.length - 1]
-      this.setData({
-        scrollToMessage: `msg-${lastMessage.id}`
-      })
+      this.setData({ scrollToMessage: `msg-${lastMessage.id}` })
     }
   },
 
-  onUnload() {
-    // 页面卸载时的清理工作
-  },
-
-  // 加载机器人信息
-  async loadRobotInfo() {
-    try {
-      const app = getApp()
-      const robotId = app.globalData.selectedRobot?.id
-
-      if (!robotId) {
-        console.error('未找到机器人ID')
-        return
-      }
-
-      const res = await request.get(`/api/robot/${robotId}`)
-      console.log('机器人信息API返回:', res)
-
-      if ((res.success || res.code === 0) && res.data) {
-        console.log('获取到机器人信息:', res.data)
-        this.setData({ robotInfo: res.data })
-      } else {
-        console.error('加载机器人信息失败:', res)
-        this.setData({
-          robotInfo: {
-            name: '智能助手',
-            description: '随时为您解答问题'
-          }
-        })
-      }
-    } catch (error) {
-      console.error('加载机器人信息失败:', error)
-      this.setData({
-        robotInfo: {
-          name: '智能助手',
-          description: '随时为您解答问题'
-        }
-      })
-    }
-  },
-
-  // 上拉加载更多
-  onReachBottom() {
-    console.log('触发onReachBottom')
-    this.loadChatHistory()
-  },
-
-  // 加载聊天历史
+  /**
+   * 加载聊天历史记录（上拉加载更多）
+   */
   async loadChatHistory() {
-    // 防止重复请求
-    if (this.data.loadingHistory) {
-      console.log('正在加载历史消息，跳过重复请求')
-      return
-    }
+    if (this.data.loadingHistory) return
 
     this.setData({ loadingHistory: true })
 
     try {
-      const app = getApp()
-      let robotId = app.globalData.selectedRobot?.id
-
+      const robotId = this.getRobotId()
       if (!robotId) {
-        console.warn('未找到机器人ID，无法加载聊天历史')
         wx.showToast({
           title: '请先选择AI助手',
           icon: 'none'
@@ -413,7 +575,6 @@ Page({
         return
       }
 
-      console.log('加载聊天历史，robotId:', robotId)
       const res = await getChatHistory(robotId, {
         page: 1,
         pageSize: 20
@@ -427,17 +588,13 @@ Page({
               isUser: msg.type === 'user',
               formattedTime: safeFormatTime(msg.createdAt || msg.time)
             }))
-          : [];
-        console.log('formattedMessages:', formattedMessages)
+          : []
 
-        // 消息去重：基于ID去重，避免重复消息
         const currentMessages = this.data.messages || []
         const existingIds = new Set(currentMessages.map(msg => msg.id))
         const newMessages = formattedMessages.filter(msg => !existingIds.has(msg.id))
 
         if (newMessages.length > 0) {
-          console.log(`添加 ${newMessages.length} 条新消息`)
-          // 将新消息追加到现有消息列表的末尾，保持时间顺序
           this.setData({
             messages: [...currentMessages, ...newMessages].sort((a, b) => {
               const timeA = new Date(a.createdAt || a.time || new Date()).getTime()
@@ -445,91 +602,92 @@ Page({
               return timeA - timeB
             })
           })
-        } else {
-          console.log('没有新消息需要添加')
         }
       }
     } catch (error) {
-      console.error('加载聊天历史失败:', error)
-      wx.showToast({
-        title: error.message || '加载聊天历史失败',
-        icon: 'none'
-      })
+      this.handleError(error, '加载聊天历史失败')
     } finally {
-      // 确保loadingHistory状态被重置
       this.setData({ loadingHistory: false })
     }
   },
 
-  // 点击发送按钮
+  /**
+   * 初始化用户背景图
+   */
+  initializeUserBackground() {
+    const app = getApp()
+    const userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
+    
+    if (userInfo && userInfo.bgpic) {
+      this.setData({ userInfo: userInfo })
+      this.preloadAndUpdateBackground(userInfo.bgpic)
+    }
+  },
+
+  /**
+   * 更新页面背景
+   */
+  updatePageBackground(bgpicUrl) {
+    if (this.data.chatBackgroundImage === bgpicUrl) return
+    
+    if (!bgpicUrl) {
+      this.setData({
+        chatBackgroundImage: '',
+        preloadedBackgroundImage: ''
+      })
+      return
+    }
+    
+    if (this.data.preloadedBackgroundImage === bgpicUrl) {
+      this.setData({ chatBackgroundImage: bgpicUrl })
+      return
+    }
+    
+    wx.getImageInfo({
+      src: bgpicUrl,
+      success: () => {
+        this.setData({
+          chatBackgroundImage: bgpicUrl,
+          preloadedBackgroundImage: bgpicUrl
+        })
+      },
+      fail: () => {
+        this.setData({ chatBackgroundImage: bgpicUrl })
+      }
+    })
+  },
+
+  // 事件处理
+  onInput(e) {
+    this.setData({ inputValue: e.detail.value })
+  },
+
   onSend() {
     this.handleSend()
   },
 
-  // 回车发送
   onConfirm() {
     this.handleSend()
   },
 
-  // 加载用户信息
-  async loadUserInfo() {
-    try {
-      const res = await getUserInfo()
-      console.debug('用户信息API返回:', res)
-
-      // 检查用户信息响应格式并处理
-      if (res.success === false || res.code === 401) {
-        console.warn('获取用户信息API返回错误:', res)
-        this.setData({ userInfo: { nickname: '我' } })
-        return
-      }
-
-      // 处理不同的响应格式
-      let userData = res.data?.user || res.data || res
-
-      console.log('设置用户信息:', userData)
-
-      // 更新全局数据
-      const app = getApp()
-      if (app?.globalData) {
-        app.globalData.userInfo = userData
-      }
-
-      // 更新本地存储
-      wx.setStorageSync('userInfo', userData)
-      this.setData({ userInfo: userData })
-
-      console.log('用户信息加载完成，包含bgpic:', userData.bgpic)
-      
-      // 强制更新背景图
-      this.updatePageBackground(userData.bgpic)
-    } catch (error) {
-      console.error('加载用户信息失败:', error)
-      this.setData({ userInfo: { nickname: '我' } })
-    }
+  onReachBottom() {
+    this.loadChatHistory()
   },
 
-  // 滚动事件处理
   onScroll(e) {
     const { scrollTop, scrollHeight, clientHeight } = e.detail
-
-    // 记录滚动位置
     this.setData({ lastScrollTop: scrollTop })
 
-    // 如果已经滚动到底部，且正在下拉，且没有正在加载历史消息
     if (scrollTop + clientHeight >= scrollHeight && this.data.isPulling && !this.data.loadingHistory) {
-      console.log('触发onScroll下拉加载')
       this.loadChatHistory()
       this.setData({ isPulling: false, pullDistance: 0 })
     }
   },
 
-  // 触摸开始事件
   onTouchStart(e) {
     const scrollTop = this.data.lastScrollTop
     const { scrollHeight, clientHeight } = e.detail
 
-    // 如果已经滚动到底部，且没有正在加载历史消息，开始记录下拉
     if (scrollTop + clientHeight >= scrollHeight && !this.data.loadingHistory) {
       this.setData({
         isPulling: true,
@@ -538,18 +696,15 @@ Page({
     }
   },
 
-  // 触摸移动事件
   onTouchMove(e) {
     if (this.data.isPulling && !this.data.loadingHistory) {
       const { startY } = this.data
       const currentY = e.touches[0].clientY
       const pullDistance = startY - currentY
-
       this.setData({ pullDistance })
     }
   },
 
-  // 触摸结束事件
   onTouchEnd() {
     if (this.data.isPulling) {
       this.setData({ isPulling: false, pullDistance: 0 })
@@ -558,7 +713,6 @@ Page({
 
   onInputFocus(e) {
     const keyboardHeight = e.detail.height || 0
-    // 减去tabbar的高度（98rpx）
     const finalKeyboardHeight = Math.max(0, keyboardHeight - 98)
 
     this.setData({
@@ -578,68 +732,27 @@ Page({
     })
   },
 
-  // 监听键盘高度变化
   onKeyboardHeightChange(e) {
     const keyboardHeight = e.detail.height
-    // 减去tabbar的高度（98rpx）
     const finalKeyboardHeight = Math.max(0, keyboardHeight - 98)
 
-    this.setData({
-      keyboardHeight: finalKeyboardHeight
-    })
+    this.setData({ keyboardHeight: finalKeyboardHeight })
 
     if (keyboardHeight > 0) {
       this.scrollToBottom()
     }
   },
 
-  // 更新用户背景图
-  updateUserBackground() {
-    const app = getApp()
-    const latestUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
-    
-    console.log('检查背景图更新:', {
-      hasLatestUserInfo: !!latestUserInfo,
-      currentBgpic: this.data.userInfo?.bgpic,
-      latestBgpic: latestUserInfo?.bgpic
+  onBackgroundImageError() {
+    this.setData({
+      chatBackgroundImage: '',
+      preloadedBackgroundImage: ''
     })
-    
-    if (latestUserInfo) {
-      // 检查背景图是否有更新（包括首次加载的情况）
-      const currentBgpic = this.data.userInfo?.bgpic
-      const latestBgpic = latestUserInfo.bgpic
-      
-      if (latestBgpic !== currentBgpic) {
-        console.log('检测到背景图更新，刷新页面背景:', latestBgpic)
-        
-        // 更新userInfo数据
-        this.setData({
-          userInfo: {
-            ...this.data.userInfo,
-            bgpic: latestBgpic
-          }
-        })
-        
-        // 通知页面重新渲染背景
-        this.updatePageBackground(latestBgpic)
-      }
-    }
   },
 
-  // 更新页面背景
-  updatePageBackground(bgpicUrl) {
-    console.log('更新页面背景图:', bgpicUrl)
-    
-    if (bgpicUrl) {
-      // 如果有背景图，设置页面背景
-      this.setData({
-        chatBackgroundImage: bgpicUrl
-      })
-    } else {
-      // 如果没有背景图，清除背景
-      this.setData({
-        chatBackgroundImage: ''
-      })
-    }
+  onUserAvatarError() {
+    // 用户头像加载失败处理
   }
-}) 
+})))
+
+Page(chatPage) 

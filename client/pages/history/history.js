@@ -1,143 +1,142 @@
 import { deleteHistory, getHotQuestions, getChatHistory } from '../../api/chat'
 import { safeFormatTime } from '../../utils/util'
+import { createPaginationPage, withRobot } from '../../utils/page-helper'
 
-Page({
+const historyPage = createPaginationPage(withRobot({
   data: {
     historyList: [],
     hotQuestions: [],
-    loading: false,
-    page: 1,
-    pageSize: 20,
-    hasMore: false,
     robotName: '',
+    dateRanges: ['全部', '本周', '本月', '今年'],
+    dateRangeIndex: 0,
   },
 
   onLoad() {
-    this.loadHistoryList()
-    this.getHotQuestions()
+    this.refreshData()
   },
 
   onShow() {
-    // 切换到history页面时刷新数据（和下拉刷新逻辑相同）
-    this.refreshHistoryData()
+    this.refreshData()
   },
 
-  // 刷新历史记录数据
-  refreshHistoryData() {
-    // 同时刷新热门问题和历史记录
-    this.loadHistoryList(true)
-    this.getHotQuestions()
-  },
-
-  // 加载历史记录列表
-  async loadHistoryList(refresh = false) {
-    if (this.data.loading) return
-
-    const { page, pageSize, historyList } = this.data
-
-    if (refresh) {  
-      this.setData({
-        page: 1,
-        historyList: [],
-      })
-    }
-
-    this.setData({ loading: true })
-
+  /**
+   * 刷新页面数据
+   */
+  async refreshData() {
     try {
-      // 获取机器人ID，从多个可能的来源获取
-      const app = getApp()
-      let robotId = null
-
-      // 尝试从页面数据获取 - 兼容性写法
-      if (this.data.robot && this.data.robot.id) {
-        robotId = this.data.robot.id
-      }
-      // 尝试从全局数据获取 - 兼容性写法
-      else if (app.globalData.selectedRobot && app.globalData.selectedRobot.id) {
-        robotId = app.globalData.selectedRobot.id
-      }
-      // 尝试从本地存储获取
-      else {
-        const storedRobot = wx.getStorageSync('selectedRobot')
-        if (storedRobot && storedRobot.id) {
-          robotId = storedRobot.id
-        }
-      }
-      
-      this.setData({ robotName: robotId })
-      
-      // 添加分页参数
-      const res = await getChatHistory(robotId, {
-        page: refresh ? 1 : page,
-        pageSize
-      })
-      
-      // 确保数据存在且格式正确
-      if (!res || !res.data) {
-        console.error('API返回数据格式错误:', res)
-        throw new Error('服务器返回数据格式错误')
-      }
-
-      // 处理新用户没有历史记录的情况，chats可能为null、undefined或空数组
-      const chats = res.data.chats || []
-      
-      const formattedList = chats.map(item => {
-        if (!item) {
-          console.warn('发现空的聊天记录项')
-          return null
-        }
-
-        // 使用工具函数安全地格式化时间
-        const formattedTime = safeFormatTime(item.time)
-
-        return {
-          ...item,
-          time: formattedTime
-        }
-      }).filter(item => item !== null) // 过滤掉null项
-
-      // 修改hasMore的判断逻辑
-      const hasMore = formattedList.length === pageSize
-
-      // 使用回调确保数据设置成功
-      this.setData({
-        historyList: refresh ? formattedList : [...historyList, ...formattedList],
-        hasMore,
-        page: refresh ? 2 : page + 1,
-      })
-
+      await Promise.all([
+        this.loadHistoryList(true),
+        this.loadHotQuestions()
+      ])
     } catch (error) {
-      console.error('加载历史记录失败:', error)
-      wx.showToast({
-        title: error.message || '加载失败',
-        icon: 'none'
-      })
-    } finally {
-      this.setData({ loading: false })
-      wx.stopPullDownRefresh()
+      this.handleError(error, '刷新数据失败')
     }
   },
 
-  // 搜索
-  handleSearch(e) {
-    const { value } = e.detail
-    this.setData({ keyword: value }, () => {
-      this.loadHistoryList(true)
-    })
+  /**
+   * 加载历史记录列表
+   */
+  async loadHistoryList(refresh = false) {
+    try {
+      const robotId = this.getRobotId()
+      if (!robotId) {
+        this.handleError(new Error('请先选择机器人'), '无法加载历史记录')
+        return
+      }
+
+      this.setData({ robotName: robotId })
+
+      const result = await this.loadMore(
+        async (page, pageSize) => {
+          const res = await getChatHistory(robotId, { page, pageSize })
+          
+          if (!res || !res.data) {
+            throw new Error('服务器返回数据格式错误')
+          }
+
+          const chats = res.data.chats || []
+          const formattedList = chats
+            .filter(item => item) // 过滤空项
+            .map(item => ({
+              ...item,
+              time: safeFormatTime(item.time)
+            }))
+
+          return {
+            list: formattedList,
+            total: res.data.total || formattedList.length
+          }
+        },
+        refresh
+      )
+
+      if (result) {
+        this.setData({ historyList: this.data.list })
+      }
+    } catch (error) {
+      this.handleError(error, '加载历史记录失败')
+      this.setData({ historyList: [] })
+    }
   },
 
-  // 删除历史记录
-  async handleDelete() {
-    const { currentHistory } = this.data
-    if (!currentHistory) return
+  /**
+   * 获取机器人ID
+   */
+  getRobotId() {
+    const app = getApp()
+    
+    if (this.data.robot && this.data.robot.id) {
+      return this.data.robot.id
+    }
+    
+    if (app.globalData.selectedRobot && app.globalData.selectedRobot.id) {
+      return app.globalData.selectedRobot.id
+    }
+    
+    const storedRobot = wx.getStorageSync('selectedRobot')
+    if (storedRobot && storedRobot.id) {
+      return storedRobot.id
+    }
+    
+    return null
+  },
+
+  /**
+   * 加载热门问题
+   */
+  async loadHotQuestions() {
+    try {
+      const res = await getHotQuestions()
+      if (res && res.success && res.data && res.data.questions) {
+        this.setData({
+          hotQuestions: res.data.questions.slice(0, 5)
+        })
+      } else {
+        this.setData({ hotQuestions: [] })
+      }
+    } catch (error) {
+      this.setData({ hotQuestions: [] })
+    }
+  },
+
+  /**
+   * 删除历史记录
+   */
+  async handleDelete(e) {
+    const { history } = e.currentTarget.dataset
+    if (!history) return
 
     try {
-      await deleteHistory(currentHistory.id)
+      await wx.showModal({
+        title: '确认删除',
+        content: '确定要删除这条历史记录吗？',
+        confirmText: '删除'
+      })
 
-      // 更新列表
+      await deleteHistory(history.id)
+
       const historyList = this.data.historyList.filter(
-        item => item.id !== currentHistory.id
+        item => item.id !== history.id
       )
 
       this.setData({ historyList })
@@ -147,16 +146,15 @@ Page({
         icon: 'success'
       })
     } catch (error) {
-      wx.showToast({
-        title: error.message || '删除失败',
-        icon: 'none'
-      })
-    } finally {
-      this.handleHideAction()
+      if (error.errMsg !== 'showModal:cancel') {
+        this.handleError(error, '删除失败')
+      }
     }
   },
 
-  // 查看详情
+  /**
+   * 查看详情
+   */
   handleViewDetail(e) {
     const { history } = e.currentTarget.dataset
     wx.navigateTo({
@@ -164,40 +162,25 @@ Page({
     })
   },
 
-  // 下拉刷新
-  onPullDownRefresh() {
-    // 使用统一的刷新方法
-    this.refreshHistoryData()
+  /**
+   * 搜索处理
+   */
+  handleSearch(e) {
+    const { value } = e.detail
+    this.setData({ keyword: value }, () => {
+      this.loadHistoryList(true)
+    })
   },
 
-  // 上拉加载更多
-  onReachBottom() {
-    if (this.data.hasMore) {
-      this.loadHistoryList()
-    }
-  },
+  /**
+   * 日期范围变化
+   */
+  onDateRangeChange(e) {
+    const dateRangeIndex = Number(e.detail.value)
+    this.setData({ dateRangeIndex }, () => {
+      this.loadHistoryList(true)
+    })
+  }
+}))
 
-  // 获取热门问题
-  async getHotQuestions() {
-    try {
-      const res = await getHotQuestions()
-      if (res && res.success && res.data && res.data.questions) {
-        this.setData({
-          hotQuestions: res.data.questions.slice(0, 5)
-        })
-      } else {
-        // 如果没有热门问题数据，设置为空数组
-        this.setData({
-          hotQuestions: []
-        })
-      }
-    } catch (error) {
-      console.error('获取热门问题失败:', error)
-      // 在下拉刷新时不显示错误提示，避免干扰用户体验
-      // 设置为空数组以避免显示异常
-      this.setData({
-        hotQuestions: []
-      })
-    }
-  },
-}) 
+Page(historyPage) 

@@ -43,6 +43,24 @@
   box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.1);
 }
 
+/* 平滑过渡效果 */
+.smooth-transition {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.loading-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #999;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+  border: 4rpx solid #fff;
+  background-color: #f0f0f0;
+}
+
 .user-detail {
   flex: 1;
 }

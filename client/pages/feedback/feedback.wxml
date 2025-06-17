@@ -20,10 +20,10 @@
       </picker>
     </view>
     
-    <view class="form-group">
+    <!-- <view class="form-group">
       <view class="contact-title">联系方式（选填）</view>
       <input class="contact-input" placeholder="请输入您的联系方式" bindinput="onContactInput" value="{{contactInfo}}"/>
-    </view>
+    </view> -->
     
     <button class="submit-btn" bindtap="submitFeedback">提交反馈</button>
   </view>

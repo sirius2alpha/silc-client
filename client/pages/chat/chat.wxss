@@ -342,3 +342,8 @@
 .share-cancel::after {
   border: none;
 }
+
+/* 平滑过渡效果 */
+.smooth-transition {
+  transition: opacity 0.3s ease-in-out;
+}
