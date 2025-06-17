@@ -7,9 +7,6 @@ Page({
   },
 
   onLoad() {
-    wx.setNavigationBarTitle({
-      title: '积分规则'
-    })
     this.loadRules()
   },
 

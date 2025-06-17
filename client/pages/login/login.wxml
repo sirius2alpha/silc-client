@@ -1,7 +1,7 @@
 <view class="container">
   <view class="header">
     <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
-    <view class="title">SILC-AI成长伙伴</view>
+    <view class="title">SILC成长伙伴</view>
     <view class="subtitle">悉问·悉知·悉守，我们一起成长</view>
   </view>
 
