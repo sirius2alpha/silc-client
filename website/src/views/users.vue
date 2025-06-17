@@ -360,14 +360,8 @@ const fetchUserList = async () => {
     const response = await getUserList(params)
     
     // 处理API返回的数据结构
-    if (response.data && response.data.users) {
-      userList.value = response.data.users
-      total.value = response.data.pagination?.total || 0
-    } else {
-      // 兼容旧的数据结构
-      userList.value = response.users || response.list || []
-      total.value = response.pagination?.total || response.total || 0
-    }
+    userList.value = response.data?.users || response.users || response.list || []
+    total.value = response.data?.pagination?.total || response.pagination?.total || response.total || 0
   } catch (error) {
     ElMessage.error('获取用户列表失败')
   } finally {
@@ -397,9 +391,7 @@ const handleViewDetail = async (user: User) => {
       ElMessage.error('用户标识符缺失')
       return
     }
-    console.log('获取用户详情，用户ID:', userId)
     const response = await getUserDetail(userId)
-    console.log('用户详情API响应:', response)
     
     // 处理API响应数据结构
     const userData = response.data?.user || response.data || response.user || response
@@ -407,7 +399,6 @@ const handleViewDetail = async (user: User) => {
     dialogVisible.value = true
 
   } catch (error) {
-    console.error('获取用户详情错误:', error)
     ElMessage.error('获取用户详情失败')
   }
 }

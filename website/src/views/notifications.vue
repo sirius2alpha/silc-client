@@ -188,14 +188,9 @@ const fetchNotifications = async () => {
       status: searchForm.status || undefined
     })
 
-    if (res) {
-      notificationList.value = res.notifications || []
-      pagination.total = res.pagination?.total || 0
-    } else {
-      ElMessage.error('获取通知列表失败')
-    }
+    notificationList.value = res.data?.notifications || res.notifications || []
+    pagination.total = res.data?.pagination?.total || res.pagination?.total || 0
   } catch (error) {
-    console.error('获取通知列表失败:', error)
     ElMessage.error('获取通知列表失败')
   } finally {
     loading.value = false
@@ -233,18 +228,13 @@ const createNotification = async () => {
 
     const response = await createNotificationAPI(createForm)
 
-    if (response) {
-      ElMessage.success('通知发布成功')
-      createDialogVisible.value = false
-      fetchNotifications()
-    } else {
-      ElMessage.error('发布通知失败')
-    }
-  } catch (error) {
-    if (error !== false) { // 表单验证失败时会返回false
-      console.error('发布通知失败:', error)
-      ElMessage.error('发布通知失败')
-    }
+    ElMessage.success('通知发布成功')
+    createDialogVisible.value = false
+    fetchNotifications()
+      } catch (error) {
+      if (error !== false) { // 表单验证失败时会返回false
+        ElMessage.error('发布通知失败')
+      }
   } finally {
     createLoading.value = false
   }
@@ -254,14 +244,9 @@ const createNotification = async () => {
 const updateStatus = async (id: string, status: string) => {
   try {
     const response = await updateNotificationStatus(id, status)
-    if (response) {
-      ElMessage.success('状态更新成功')
-      fetchNotifications()
-    } else {
-      ElMessage.error('状态更新失败')
-    }
+    ElMessage.success('状态更新成功')
+    fetchNotifications()
   } catch (error) {
-    console.error('状态更新失败:', error)
     ElMessage.error('状态更新失败')
   }
 }
@@ -276,15 +261,10 @@ const deleteNotification = async (id: string) => {
     })
 
     const response = await deleteNotificationAPI(id)
-    if (response) {
-      ElMessage.success('删除成功')
-      fetchNotifications()
-    } else {
-      ElMessage.error('删除失败')
-    }
+    ElMessage.success('删除成功')
+    fetchNotifications()
   } catch (error) {
     if (error === 'cancel') return
-    console.error('删除失败:', error)
     ElMessage.error('删除失败')
   }
 }

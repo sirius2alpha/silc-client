@@ -57,6 +57,17 @@ export const manageKnowledge = (
   return request.post('/api/admin/knowledge', data)
 }
 
+// 批量上传知识
+export const batchUploadKnowledge = (
+  knowledgeItems: {
+    title: string;
+    content: string;
+    tags: string[];
+  }[]
+) => {
+  return request.post('/api/admin/knowledge/batch', { knowledge_items: knowledgeItems })
+}
+
 
 /*chat*/
 

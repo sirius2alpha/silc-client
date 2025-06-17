@@ -253,27 +253,20 @@ const fetchFeedbackList = async () => {
       endDate: dateRange.value?.[1]
     })
     
-    if (response.data && response.data.list) {
-      feedbackList.value = response.data.list.map((item: any) => ({
-        id: item.id,
-        userId: item.userId,
-        content: item.content,
-        type: item.type,
-        status: item.status,
-        contactInfo: item.contactInfo || '',
-        createdAt: item.createdAt
-      }))
-      total.value = response.data.pagination.total
-    } else if (response.list) {
-      feedbackList.value = response.list
-      total.value = response.total
-    } else {
-      feedbackList.value = []
-      total.value = 0
-    }
-  } catch (error) {
+    feedbackList.value = response.data?.list?.map((item: any) => ({
+      id: item.id,
+      userId: item.userId,
+      content: item.content,
+      type: item.type,
+      status: item.status,
+      contactInfo: item.contactInfo || '',
+      createdAt: item.createdAt
+    })) || []
+    total.value = response.data?.pagination?.total || 0
+  } catch (error: any) {
     console.error('获取反馈列表失败:', error)
-    ElMessage.error('获取反馈列表失败')
+    const errorMessage = error?.response?.data?.message || error?.message || '获取反馈列表失败'
+    ElMessage.error(errorMessage)
   } finally {
     loading.value = false
   }

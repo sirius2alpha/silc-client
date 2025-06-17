@@ -22,8 +22,8 @@ export default defineConfig({
     proxy: {
       // 配置代理规则
       '/api': {
-        target: 'https://silcai.cn',
-        // target: 'http://localhost:8080',
+        // target: 'https://silcai.cn',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       }
     }

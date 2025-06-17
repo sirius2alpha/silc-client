@@ -330,25 +330,25 @@ const fetchChatList = async () => {
     console.log('API响应完整数据:', response)
     
     // 处理API返回的数据结构
-    // 由于响应拦截器返回的是data字段，所以response直接包含items和pagination
-    if (response.items) {
-      chatList.value = response.items.map((item: any) => ({
+    // 响应拦截器返回的是response.data，实际数据在response.data.items中
+    if (response.data && response.data.items) {
+      chatList.value = response.data.items.map((item: any) => ({
         ...item,
         // 处理标签数据，确保向后兼容
         tags: item.tags || (item.tag ? [item.tag] : []),
         tag: item.tag || (item.tags && item.tags.length > 0 ? item.tags[0] : undefined)
       }))
       // 从响应中获取total值
-      total.value = response.pagination?.total || 0
+      total.value = response.data.pagination?.total || 0
       console.log('设置total为:', total.value)
     } else {
-      // 兼容旧的数据结构
+      // 兼容旧的数据结构 - 直接在response中查找items
       chatList.value = (response.items || []).map((item: any) => ({
         ...item,
         tags: item.tags || (item.tag ? [item.tag] : []),
         tag: item.tag || (item.tags && item.tags.length > 0 ? item.tags[0] : undefined)
       }))
-      total.value = response.total || 0
+      total.value = response.pagination?.total || response.total || 0
     }
     
     // 更新可用标签列表 - 从所有标签数组中收集
@@ -390,8 +390,8 @@ const handleViewDetail = async (row: ChatItem) => {
   try {
     const response = await getChatDetail(row.id)
     console.log('API响应:', response)
-    // 由于响应拦截器返回的是data字段，所以response直接包含chat数据
-    const chatData = response.chat || response
+    // 响应拦截器返回的是response.data，实际聊天数据在response.data.chat中
+    const chatData = response.data?.chat || response.chat || response
     console.log('处理后的聊天数据:', chatData)
     
     currentChat.value = {

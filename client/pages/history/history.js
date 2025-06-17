@@ -74,12 +74,15 @@ Page({
       })
       
       // 确保数据存在且格式正确
-      if (!res || !res.data || !res.data.chats) {
+      if (!res || !res.data) {
         console.error('API返回数据格式错误:', res)
         throw new Error('服务器返回数据格式错误')
       }
 
-      const formattedList = res.data.chats.map(item => {
+      // 处理新用户没有历史记录的情况，chats可能为null、undefined或空数组
+      const chats = res.data.chats || []
+      
+      const formattedList = chats.map(item => {
         if (!item) {
           console.warn('发现空的聊天记录项')
           return null
@@ -178,14 +181,23 @@ Page({
   async getHotQuestions() {
     try {
       const res = await getHotQuestions()
-      if (res.success) {
+      if (res && res.success && res.data && res.data.questions) {
         this.setData({
           hotQuestions: res.data.questions.slice(0, 5)
+        })
+      } else {
+        // 如果没有热门问题数据，设置为空数组
+        this.setData({
+          hotQuestions: []
         })
       }
     } catch (error) {
       console.error('获取热门问题失败:', error)
       // 在下拉刷新时不显示错误提示，避免干扰用户体验
+      // 设置为空数组以避免显示异常
+      this.setData({
+        hotQuestions: []
+      })
     }
   },
 }) 

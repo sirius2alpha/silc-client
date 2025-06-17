@@ -61,6 +61,10 @@
           <view class="dot"></view>
         </view>
       </view>
+      <!-- 加载历史消息中 -->
+      <view class="loading-history" wx:if="{{loadingHistory}}">
+        <text>正在加载历史消息...</text>
+      </view>
     </view>
   </scroll-view>
   <!-- 输入区域 -->

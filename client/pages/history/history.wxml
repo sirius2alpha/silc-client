@@ -21,6 +21,9 @@
           </view>
         </view>
       </block>
+      <view class="empty-hot-questions" wx:if="{{hotQuestions.length === 0}}">
+        <text>暂无热门问题</text>
+      </view>
     </view>
   </view>
 

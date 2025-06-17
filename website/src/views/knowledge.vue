@@ -2,10 +2,16 @@
   <div class="knowledge-container">
     <div class="page-header">
       <h2>知识库管理</h2>
-      <el-button type="primary" @click="handleUpload">
-        <el-icon><Upload /></el-icon>
-        上传知识
-      </el-button>
+      <div class="header-buttons">
+        <el-button type="primary" @click="handleUpload">
+          <el-icon><Upload /></el-icon>
+          上传知识
+        </el-button>
+        <el-button type="success" @click="handleBatchUpload">
+          <el-icon><DocumentAdd /></el-icon>
+          批量上传
+        </el-button>
+      </div>
     </div>
 
     <div class="search-bar">
@@ -163,16 +169,151 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 批量上传对话框 -->
+    <el-dialog
+      v-model="batchUploadVisible"
+      title="批量上传知识"
+      width="80%"
+      :close-on-click-modal="false"
+    >
+      <div class="batch-upload-container">
+        <!-- 文件上传区域 -->
+        <div v-if="parsedKnowledgeList.length === 0" class="file-upload-area">
+          <div class="template-download">
+            <el-button type="info" size="small" @click="downloadTemplate">
+              <el-icon><Download /></el-icon>
+              下载模板文件
+            </el-button>
+          </div>
+          
+          <el-upload
+            :before-upload="handleFileUpload"
+            :show-file-list="false"
+            accept=".xlsx,.xls,.csv"
+            drag
+          >
+            <el-icon class="el-icon--upload"><Document /></el-icon>
+            <div class="el-upload__text">
+              将文件拖到此处，或<em>点击上传</em>
+            </div>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持 Excel (.xlsx/.xls) 和 CSV 格式文件，文件格式要求：
+                <br>
+                Excel/CSV: 第一行为表头，必须包含"标题"或"title"列和"内容"或"content"列
+                <br>
+                可选包含"标签"或"tags"列，多个标签用逗号、分号或竖线分隔
+              </div>
+            </template>
+          </el-upload>
+        </div>
+
+        <!-- 解析结果预览和编辑 -->
+        <div v-else class="parsed-data-area">
+          <div class="data-header">
+            <h3>解析结果预览 (共 {{ parsedKnowledgeList.length }} 条)</h3>
+            <el-button @click="parsedKnowledgeList = []">重新上传文件</el-button>
+          </div>
+
+          <el-table
+            :data="parsedKnowledgeList"
+            border
+            max-height="400"
+          >
+            <el-table-column type="index" label="序号" width="60" />
+            <el-table-column label="标题" min-width="200">
+              <template #default="{ row, $index }">
+                <el-input
+                  v-model="row.title"
+                  @input="editParsedItem($index, 'title', $event)"
+                  placeholder="请输入标题"
+                />
+              </template>
+            </el-table-column>
+            <el-table-column label="内容" min-width="300">
+              <template #default="{ row, $index }">
+                <el-input
+                  v-model="row.content"
+                  type="textarea"
+                  :rows="2"
+                  @input="editParsedItem($index, 'content', $event)"
+                  placeholder="请输入内容"
+                />
+              </template>
+            </el-table-column>
+            <el-table-column label="标签" min-width="200">
+              <template #default="{ row, $index }">
+                <div class="tags-edit-area">
+                  <el-tag
+                    v-for="(tag, tagIndex) in row.tags"
+                    :key="tagIndex"
+                    closable
+                    @close="row.tags.splice(tagIndex, 1)"
+                    class="tag-item"
+                  >
+                    {{ tag }}
+                  </el-tag>
+                  <el-input
+                    v-model="newTagValue"
+                    size="small"
+                    placeholder="添加标签"
+                    style="width: 80px;"
+                    @keyup.enter="addTagToItem($index, newTagValue); newTagValue = ''"
+                  />
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="80">
+              <template #default="{ $index }">
+                <el-button
+                  type="danger"
+                  size="small"
+                  @click="removeParsedItem($index)"
+                >
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 上传进度 -->
+          <div v-if="batchUploadLoading" class="upload-progress">
+            <el-progress
+              :percentage="uploadProgress"
+              :status="uploadProgress === 100 ? 'success' : undefined"
+            />
+            <p>正在上传中... {{ uploadProgress }}%</p>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="batchUploadVisible = false" :disabled="batchUploadLoading">取消</el-button>
+          <el-button
+            v-if="parsedKnowledgeList.length > 0"
+            type="primary"
+            @click="confirmBatchUpload"
+            :loading="batchUploadLoading"
+          >
+            <el-icon><Check /></el-icon>
+            确认上传 ({{ parsedKnowledgeList.length }} 条)
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Upload, Edit, Delete, PriceTag } from '@element-plus/icons-vue'
-import { getKnowledgeList, manageKnowledge, KnowledgeOperation } from '@/api/admin'
+import { Search, Upload, Edit, Delete, PriceTag, DocumentAdd, Document, Check, Close, Download } from '@element-plus/icons-vue'
+import { getKnowledgeList, manageKnowledge, batchUploadKnowledge, KnowledgeOperation } from '@/api/admin'
 import request from '@/utils/request'
 import { formatDateTime } from '@/utils/date'
+import * as XLSX from 'xlsx'
 
 interface KnowledgeItem {
   id: string
@@ -200,6 +341,14 @@ const dialogType = ref<'upload' | 'edit'>('upload')
 const formRef = ref()
 const newTagInput = ref('')
 const currentEditingId = ref('')
+
+// 批量上传相关状态
+const batchUploadVisible = ref(false)
+const uploadedFile = ref<File | null>(null)
+const parsedKnowledgeList = ref<KnowledgeItem[]>([])
+const batchUploadLoading = ref(false)
+const uploadProgress = ref(0)
+const newTagValue = ref('')
 
 const form = reactive({
   title: '',
@@ -268,34 +417,18 @@ const removeTag = (index: number) => {
 const fetchKnowledgeList = async () => {
   loading.value = true
   try {
-    console.log('开始获取知识库列表...')
-    console.log('请求参数:', {
-      page: currentPage.value,
-      pageSize: pageSize.value,
-      keyword: searchQuery.value
-    })
-    
     const response = await getKnowledgeList({
       page: currentPage.value,
       pageSize: pageSize.value,
       keyword: searchQuery.value
     })
     
-    console.log('知识库列表响应:', response)
-    console.log('响应类型:', typeof response)
-    console.log('响应数据结构:', Object.keys(response))
-    
-    knowledgeList.value = response.items
-    total.value = response.total
-    console.log('更新后的列表:', knowledgeList.value)
+    knowledgeList.value = response.data?.items || []
+    total.value = response.data?.pagination?.total || 0
   } catch (error: any) {
-    console.error('获取知识列表错误:', error)
-    console.error('错误详情:', {
-      message: error?.message,
-      stack: error?.stack,
-      response: error?.response
-    })
-    ElMessage.error('获取知识列表失败')
+    console.error('获取知识列表失败:', error)
+    const errorMessage = error?.response?.data?.message || error?.message || '获取知识列表失败'
+    ElMessage.error(errorMessage)
   } finally {
     loading.value = false
   }
@@ -405,6 +538,194 @@ const formatDate = (date: string) => {
   return formatDateTime(date)
 }
 
+// 批量上传相关函数
+const handleBatchUpload = () => {
+  batchUploadVisible.value = true
+  uploadedFile.value = null
+  parsedKnowledgeList.value = []
+  uploadProgress.value = 0
+}
+
+const handleFileUpload = (file: File) => {
+  uploadedFile.value = file
+  parseFile(file)
+  return false // 阻止自动上传
+}
+
+const parseFile = async (file: File) => {
+  try {
+    const arrayBuffer = await file.arrayBuffer()
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+    
+    // 获取第一个工作表
+    const firstSheetName = workbook.SheetNames[0]
+    const worksheet = workbook.Sheets[firstSheetName]
+    
+    // 将工作表转换为JSON数组
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+    
+    if (jsonData.length < 2) {
+      ElMessage.error('文件内容为空或格式不正确')
+      return
+    }
+    
+    // 获取表头
+    const headers = jsonData[0] as string[]
+    
+    // 查找必需列的索引
+    const titleIndex = headers.findIndex(h => 
+      h && (h.toLowerCase().includes('title') || h.includes('标题') || h === '标题'))
+    const contentIndex = headers.findIndex(h => 
+      h && (h.toLowerCase().includes('content') || h.includes('内容') || h === '内容'))
+    const tagsIndex = headers.findIndex(h => 
+      h && (h.toLowerCase().includes('tags') || h.includes('标签') || h === '标签'))
+    
+    if (titleIndex === -1) {
+      ElMessage.error('未找到标题列，请确保文件包含"title"或"标题"列')
+      return
+    }
+    
+    if (contentIndex === -1) {
+      ElMessage.error('未找到内容列，请确保文件包含"content"或"内容"列')
+      return
+    }
+    
+    // 解析数据行
+    const parsedData: any[] = []
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i] as any[]
+      
+      if (!row[titleIndex] || !row[contentIndex]) {
+        continue // 跳过空行
+      }
+      
+      const tags = tagsIndex !== -1 && row[tagsIndex] 
+        ? String(row[tagsIndex]).split(/[,，;；|｜]/).map(t => t.trim()).filter(t => t)
+        : []
+      
+      parsedData.push({
+        title: String(row[titleIndex]).trim(),
+        content: String(row[contentIndex]).trim(),
+        tags: tags
+      })
+    }
+    
+    if (parsedData.length === 0) {
+      ElMessage.error('没有找到有效的数据行')
+      return
+    }
+    
+    // 转换为知识项格式
+    parsedKnowledgeList.value = parsedData.map((item, index) => ({
+      id: `temp-${index}`,
+      title: item.title,
+      content: item.content,
+      tags: item.tags,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }))
+    
+    ElMessage.success(`成功解析 ${parsedKnowledgeList.value.length} 条知识`)
+  } catch (error) {
+    console.error('文件解析失败:', error)
+    ElMessage.error('文件解析失败，请检查文件格式')
+  }
+}
+
+const editParsedItem = (index: number, field: keyof KnowledgeItem, value: any) => {
+  if (field === 'tags') {
+    parsedKnowledgeList.value[index].tags = Array.isArray(value) ? value : [value]
+  } else if (field === 'title' || field === 'content') {
+    (parsedKnowledgeList.value[index] as any)[field] = value
+  }
+}
+
+const removeParsedItem = (index: number) => {
+  parsedKnowledgeList.value.splice(index, 1)
+}
+
+const addTagToItem = (index: number, tag: string) => {
+  if (tag.trim() && !parsedKnowledgeList.value[index].tags?.includes(tag.trim())) {
+    if (!parsedKnowledgeList.value[index].tags) {
+      parsedKnowledgeList.value[index].tags = []
+    }
+    parsedKnowledgeList.value[index].tags?.push(tag.trim())
+  }
+}
+
+// 下载模板文件
+const downloadTemplate = () => {
+  // 创建模板数据
+  const templateData = [
+    ['标题', '内容', '标签'],
+    ['如何查询课程表', '你可以通过以下方式查询课程表：1. 登录教务系统2. 点击"课程表查询"选项3. 选择相应的学期4. 系统会显示你的完整课程表', '教务,课程表'],
+    ['如何申请缓考', '申请缓考的步骤如下：1. 在考试前至少3天提交缓考申请2. 准备相关证明材料（如医院证明等）3. 填写缓考申请表4. 提交给所在学院教务办公室5. 等待审核结果', '考试,缓考'],
+    ['如何办理学生证补办', '学生证补办流程：1. 准备一寸照片2. 填写补办申请表3. 到学生事务中心办理4. 缴纳补办费用5. 等待3-5个工作日领取新证', '学生证,补办']
+  ]
+  
+  // 创建工作簿
+  const worksheet = XLSX.utils.aoa_to_sheet(templateData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, '知识库模板')
+  
+  // 设置列宽
+  worksheet['!cols'] = [
+    { wch: 20 }, // 标题列
+    { wch: 60 }, // 内容列
+    { wch: 20 }  // 标签列
+  ]
+  
+  // 下载文件
+  XLSX.writeFile(workbook, '知识库批量上传模板.xlsx')
+  ElMessage.success('模板文件已下载')
+}
+
+const confirmBatchUpload = async () => {
+  if (parsedKnowledgeList.value.length === 0) {
+    ElMessage.warning('没有可上传的知识')
+    return
+  }
+  
+  try {
+    batchUploadLoading.value = true
+    uploadProgress.value = 50 // 开始上传
+    
+    // 准备批量上传数据
+    const knowledgeItems = parsedKnowledgeList.value.map(item => ({
+      title: item.title,
+      content: item.content,
+      tags: item.tags || []
+    }))
+    
+    // 调用批量上传API
+    const response = await batchUploadKnowledge(knowledgeItems)
+    
+    uploadProgress.value = 100 // 完成上传
+    
+    if (response.result) {
+      const { totalCount, successCount, failedCount, errors } = response.result
+      
+      // 显示详细结果
+      if (failedCount && failedCount > 0) {
+        console.warn('部分知识上传失败:', errors)
+        ElMessage.warning(`批量上传完成，成功 ${successCount}/${totalCount} 条，${failedCount} 条失败`)
+      } else {
+        ElMessage.success(`批量上传完成，成功上传 ${successCount} 条知识`)
+      }
+    } else {
+      ElMessage.success('批量上传完成')
+    }
+    
+    batchUploadVisible.value = false
+    fetchKnowledgeList()
+  } catch (error: any) {
+    console.error('批量上传失败:', error)
+    ElMessage.error(error?.message || '批量上传失败')
+  } finally {
+    batchUploadLoading.value = false
+  }
+}
+
 onMounted(() => {
   fetchKnowledgeList()
 })
@@ -425,6 +746,11 @@ onMounted(() => {
 .page-header h2 {
   margin: 0;
   color: #303133;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
 }
 
 .search-bar {
@@ -536,5 +862,55 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* 批量上传相关样式 */
+.batch-upload-container {
+  min-height: 400px;
+}
+
+.file-upload-area {
+  padding: 40px;
+}
+
+.template-download {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.parsed-data-area {
+  padding: 20px 0;
+}
+
+.data-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.data-header h3 {
+  margin: 0;
+  color: #303133;
+}
+
+.tags-edit-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.upload-progress {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.upload-progress p {
+  margin: 10px 0 0 0;
+  color: #606266;
 }
 </style> 

@@ -44,24 +44,17 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   (response) => {
-    console.log('响应数据:', response.data)
-    
-    // 登录接口返回完整响应数据（包含success字段）
-    if (response.config.url?.includes('/login')) {
-      return response.data
-    }
-    
-    // 其他接口按照标准格式处理
-    const { code, message, data, success } = response.data
-    
     // 检查请求是否成功
-    if (code !== 0 && code !== 200) {
+    const { code, message, success } = response.data
+    
+    // 检查请求是否成功 - 支持code 200或success为true
+    if (code !== 200 && !success) {
       ElMessage.error(message || '请求失败')
       return Promise.reject(new Error(message || '请求失败'))
     }
     
-    // 返回 data 字段
-    return data
+    // 统一返回完整响应数据，让组件自行决定如何使用
+    return response.data
   },
   async (error) => {
     console.error('请求错误:', error)

@@ -185,7 +185,7 @@ const wordCloudChart = ref<HTMLElement | null>(null)
 const fetchStats = async () => {
   try {
     const response = await getStats()
-    stats.value = response
+    stats.value = response.data || response
     initCharts()
     initWordCloudChart()
   } catch (error) {

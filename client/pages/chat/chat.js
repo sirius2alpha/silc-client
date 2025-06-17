@@ -43,6 +43,7 @@ Page({
     isPulling: false,
     pullDistance: 0,
     lastScrollTop: 0,
+    loadingHistory: false,  // 添加加载历史消息的状态
   },
 
   async onLoad() {
@@ -294,7 +295,7 @@ Page({
           createdAt: res.data.userMessage.createdAt || new Date().toISOString(),
           type: 'user',
           isUser: true,
-          formattedTime: safeFormatTime(res.data.userMessage.createdAt)
+          formattedTime: safeFormatTime(res.data.userMessage.createdAt || res.data.userMessage.time || new Date().toISOString())
         }
         newMessages.push(userMessage)
       }
@@ -309,7 +310,7 @@ Page({
           robotAvatar: robot.avatar,
           type: 'robot',
           isUser: false,
-          formattedTime: safeFormatTime(res.data.robotReply.createdAt)
+          formattedTime: safeFormatTime(res.data.robotReply.createdAt || res.data.robotReply.time || new Date().toISOString())
         }
         newMessages.push(robotMessage)
       }
@@ -385,11 +386,20 @@ Page({
 
   // 上拉加载更多
   onReachBottom() {
+    console.log('触发onReachBottom')
     this.loadChatHistory()
   },
 
   // 加载聊天历史
   async loadChatHistory() {
+    // 防止重复请求
+    if (this.data.loadingHistory) {
+      console.log('正在加载历史消息，跳过重复请求')
+      return
+    }
+
+    this.setData({ loadingHistory: true })
+
     try {
       const app = getApp()
       let robotId = app.globalData.selectedRobot?.id
@@ -420,15 +430,24 @@ Page({
           : [];
         console.log('formattedMessages:', formattedMessages)
 
-        // 将新消息追加到现有消息列表的末尾，保持时间顺序
+        // 消息去重：基于ID去重，避免重复消息
         const currentMessages = this.data.messages || []
-        this.setData({
-          messages: [...currentMessages, ...formattedMessages].sort((a, b) => {
-            const timeA = new Date(a.createdAt || a.time || new Date()).getTime()
-            const timeB = new Date(b.createdAt || b.time || new Date()).getTime()
-            return timeA - timeB
+        const existingIds = new Set(currentMessages.map(msg => msg.id))
+        const newMessages = formattedMessages.filter(msg => !existingIds.has(msg.id))
+
+        if (newMessages.length > 0) {
+          console.log(`添加 ${newMessages.length} 条新消息`)
+          // 将新消息追加到现有消息列表的末尾，保持时间顺序
+          this.setData({
+            messages: [...currentMessages, ...newMessages].sort((a, b) => {
+              const timeA = new Date(a.createdAt || a.time || new Date()).getTime()
+              const timeB = new Date(b.createdAt || b.time || new Date()).getTime()
+              return timeA - timeB
+            })
           })
-        })
+        } else {
+          console.log('没有新消息需要添加')
+        }
       }
     } catch (error) {
       console.error('加载聊天历史失败:', error)
@@ -436,6 +455,9 @@ Page({
         title: error.message || '加载聊天历史失败',
         icon: 'none'
       })
+    } finally {
+      // 确保loadingHistory状态被重置
+      this.setData({ loadingHistory: false })
     }
   },
 
@@ -494,8 +516,9 @@ Page({
     // 记录滚动位置
     this.setData({ lastScrollTop: scrollTop })
 
-    // 如果已经滚动到底部，且正在下拉
-    if (scrollTop + clientHeight >= scrollHeight && this.data.isPulling) {
+    // 如果已经滚动到底部，且正在下拉，且没有正在加载历史消息
+    if (scrollTop + clientHeight >= scrollHeight && this.data.isPulling && !this.data.loadingHistory) {
+      console.log('触发onScroll下拉加载')
       this.loadChatHistory()
       this.setData({ isPulling: false, pullDistance: 0 })
     }
@@ -506,8 +529,8 @@ Page({
     const scrollTop = this.data.lastScrollTop
     const { scrollHeight, clientHeight } = e.detail
 
-    // 如果已经滚动到底部，开始记录下拉
-    if (scrollTop + clientHeight >= scrollHeight) {
+    // 如果已经滚动到底部，且没有正在加载历史消息，开始记录下拉
+    if (scrollTop + clientHeight >= scrollHeight && !this.data.loadingHistory) {
       this.setData({
         isPulling: true,
         startY: e.touches[0].clientY
@@ -517,7 +540,7 @@ Page({
 
   // 触摸移动事件
   onTouchMove(e) {
-    if (this.data.isPulling) {
+    if (this.data.isPulling && !this.data.loadingHistory) {
       const { startY } = this.data
       const currentY = e.touches[0].clientY
       const pullDistance = startY - currentY
