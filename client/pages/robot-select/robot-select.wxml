@@ -1,7 +1,7 @@
 <view class="container">
   <view class="background-layer"></view>
   <view class="header">
-    <text class="title">请选择你的专属悉商AI伙伴</text>
+    <text class="title">请选择你的专属悉商成长伙伴</text>
     <text class="subtitle">请选择一位智能伙伴，共同开启悉商成长之旅</text>
   </view>
 
@@ -71,6 +71,6 @@
     bindtap="handleBind"
    style="position: relative; left: -1rpx; top: -74rpx">
     <text wx:if="{{selectedRobot}}">选择{{selectedRobot.name}}</text>
-    <text wx:else>请选择你的专属悉商AI伙伴</text>
+    <text wx:else>请选择你的专属悉商成长伙伴</text>
   </button>
 </view> 

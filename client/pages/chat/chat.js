@@ -126,7 +126,7 @@ const chatPage = createPage(withUserInfo(withRobot({
     if (!robotInfo || !robotInfo.id) {
       wx.showModal({
         title: '提示',
-        content: '请先选择AI助手',
+        content: '请先选择成长伙伴',
         showCancel: false,
         success: () => {
           wx.reLaunch({ url: '/pages/robot-select/robot-select' })
@@ -156,7 +156,7 @@ const chatPage = createPage(withUserInfo(withRobot({
     if (!selectedRobot) {
       wx.showModal({
         title: '提示',
-        content: '请先选择AI助手',
+        content: '请先选择成长伙伴',
         showCancel: false,
         success: () => {
           wx.reLaunch({ url: '/pages/robot-select/robot-select' })

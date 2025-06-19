@@ -250,7 +250,7 @@ export const RobotManager = {
     if (!robot || !robot.id) {
       wx.showModal({
         title: '提示',
-        content: '请先选择AI助手',
+        content: '请先选择成长伙伴',
         showCancel: false,
         success: () => {
           wx.reLaunch({
