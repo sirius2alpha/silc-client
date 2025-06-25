@@ -24,15 +24,15 @@
       <text bindtap="navigateToReset">忘记密码</text>
     </view> -->
 
-    <view class="divider">
+    <!-- <view class="divider">
       <view class="line"></view>
       <text>或</text>
       <view class="line"></view>
-    </view>
+    </view> -->
 
-    <button class="wechat-btn" open-type="getUserInfo" bindgetuserinfo="handleWechatLogin">
+    <!-- <button class="wechat-btn" open-type="getUserInfo" bindgetuserinfo="handleWechatLogin">
       <image class="wechat-icon" src="/assets/images/wechat.png" mode="aspectFit"></image>
       微信一键登录
-    </button>
+    </button> -->
   </view>
 </view>

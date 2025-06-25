@@ -87,3 +87,20 @@ export const logout = async () => {
         throw error
     }
 }
+
+// 修改密码
+export const changePassword = async ({ newPassword }) => {
+    try {
+        const token = wx.getStorageSync('accessToken')
+        console.log('发送修改密码请求')
+        const result = await request.put('/api/auth/user/password', { new_password: newPassword }, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        return result
+    } catch (error) {
+        console.error('修改密码请求失败:', error)
+        throw error
+    }
+}

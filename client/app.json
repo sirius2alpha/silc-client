@@ -11,6 +11,7 @@
     "pages/points/record/record",
     "pages/points/rules/rules",
     "pages/profile/profile",
+    "pages/change-password/change-password",
     "pages/info/info",
     "pages/notifications/notifications",
     "pages/feedback/feedback",

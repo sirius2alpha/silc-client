@@ -1,5 +1,5 @@
 <view class="container">
-  <view class="header">
+  <!-- <view class="header">
     <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
     <view class="title">注册账号</view>
   </view>
@@ -54,10 +54,10 @@
       bindtap="handleRegister"
     >
       注册
-    </button>
+    </button> -->
 
     <view class="footer">
       <text class="link" bindtap="navigateToLogin">已有账号？去登录</text>
     </view>
-  </view>
+  <!-- </view> -->
 </view> 

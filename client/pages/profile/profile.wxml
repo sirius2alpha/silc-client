@@ -39,6 +39,16 @@
       </view>
     </view>
 
+    <view class="function-item" bindtap="goToChangePassword">
+      <view class="item-left">
+        <image class="item-icon" src="/assets/icons/lock.png" mode="aspectFit"></image>
+        <text class="item-name">修改密码</text>
+      </view>
+      <view class="item-right">
+        <text class="arrow">></text>
+      </view>
+    </view>
+
     <view class="function-item" bindtap="goToAbout">
       <view class="item-left">
         <image class="item-icon" src="/assets/icons/about.png" mode="aspectFit"></image>
